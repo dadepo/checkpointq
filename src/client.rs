@@ -3,8 +3,7 @@ use reqwest::header::CONTENT_TYPE;
 use serde::{Serialize, Deserialize};
 use futures::prelude::*;
 use futures::stream::FuturesUnordered;
-use futures::future::select_all;
-use futures::FutureExt;
+use futures::future::{select_all, FutureExt, join_all};
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -31,6 +30,7 @@ const DEFAULT_SEPOLIA: [&'static str; 2] = [
     "https://sepolia.checkpoint-sync.ethdevops.io",
 ];
 
+// `Req/Res
 pub struct CheckpointRes {
     network: Network,
     endpoints: Vec<String>,
@@ -45,40 +45,56 @@ pub struct SyncingRes {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct SyncGetResponse {
-    data: SyncResponse
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 struct SyncingResGetResponse {
     data: SyncingRes
 }
 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BlockInfo {
+    pub epoch: String,
+    pub root: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Data {
+    pub finalized: BlockInfo,
+    pub current_justified: BlockInfo,
+    pub previous_justified: BlockInfo,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-struct SyncResponse {
-    head_slot: String,
-    sync_distance: String,
-    is_syncing: bool
+pub struct FinalityCheckpointResp {
+    pub data: Data,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UrlFinalityCheckpointResp {
+    pub data: Data,
+    pub url: String
+}
+
+pub type Finality_Results = Vec<(Result<FinalityCheckpointResp, reqwest::Error>, String)>;
+
+#[derive(Debug)]
+pub struct CheckpointClient {
+    client: reqwest::Client,
+    endpoints: Vec<String>,
+    stateId: StateId
 }
 
 #[derive(Debug)]
-pub struct Client {
-    network: Network,
-    endpoints: Vec<String>
+pub enum StateId {
+    Finalized,
+    Slot(u128) // TODO is u128 to big?
 }
 
-impl Client {
-    pub fn new(network: Network, endpoints: Vec<String>) -> Self {
-        if endpoints.is_empty() {
-            Self {
-                network,
-                endpoints: Self::default_network_endpoints(network)
-            }
-        } else {
-            Self {
-                network,
-                endpoints
-            }
+impl CheckpointClient {
+    pub fn new(client: reqwest::Client, stateId: StateId, endpoints: Vec<String>) -> Self {
+        Self {
+            client,
+            endpoints,
+            stateId
         }
     }
     pub fn default_network_endpoints(network: Network) -> Vec<String> {
@@ -107,5 +123,21 @@ impl Client {
 
         let head_slot = item_resolved?.json::<SyncingResGetResponse>().await?.data.head_slot.parse::<u128>()?;
         Ok(head_slot)
+    }
+    pub async fn fetch_finality_checkpoints(&self) -> Finality_Results {
+        let endpoints = &self.endpoints;
+        join_all(endpoints.iter().map(|endpoint| async {
+            let raw_response = async {
+                let result = self.client.get(format!("{}{}", endpoint.clone(), "/eth/v1/beacon/states/finalized/finality_checkpoints")).send();
+                let result = match result.await {
+                    // TODO Possible not to use match?
+                    // Catch error before parsing to json so that original error message is used upstream
+                    Ok(res) => res.json::<FinalityCheckpointResp>().await,
+                    Err(e) => Err(e)
+                };
+                (result, endpoint.clone())
+            }.await;
+            raw_response
+        })).await
     }
 }

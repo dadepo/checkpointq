@@ -1,9 +1,13 @@
 use crate::args::{Cli, Network};
 use clap::Parser;
-use crate::client::Client;
+use crate::client::CheckpointClient;
+use crate::client::StateId;
+use crate::processor::process_result;
+use crate::StateId::Slot;
 
 mod args;
 mod client;
+mod processor;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,18 +24,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Get the endpoints
     let endpoints: Vec<String> = if let Some(network) = input.network {
-        Client::default_network_endpoints(network)
+        CheckpointClient::default_network_endpoints(network)
     } else {
         input.endpoints
     };
 
 
-    // 2. get the slot to get the checkpoint from. If none is given use the head slot
-    let slot: u128 = if input.slot == "head" {
-        Client::get_head_slot(client, endpoints).await?
+    // 2. get the state id to get the checkpoint from. If none is given use the finalized
+    let stateId: StateId = if input.slot == "finalized" {
+        StateId::Finalized
     } else {
-        input.slot.parse::<u128>().unwrap()
+        match input.slot.parse::<u128>() {
+            Ok(value) => Slot(value),
+            Err(_) => StateId::Finalized
+        }
     };
 
+    let checkpoint_client = CheckpointClient::new(client, stateId, endpoints);
+    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    process_result(result);
     Ok(())
 }

@@ -14,7 +14,7 @@ pub struct Cli {
     pub network: Option<Network>,
     #[arg(short, long)]
     pub endpoints: Vec<String>,
-    #[arg(short, long,  default_value_t = String::from("head"), help = "provide the slot number or head")]
+    #[arg(short, long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
     pub slot: String
 }
 
