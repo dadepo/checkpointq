@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::args::Network;
 use reqwest::header::CONTENT_TYPE;
 use serde::{Serialize, Deserialize};
@@ -72,6 +73,23 @@ pub struct FinalityCheckpointPayload {
 pub struct ResponsePayload {
     pub payload: Result<FinalityCheckpointPayload, reqwest::Error>,
     pub endpoint: String
+}
+
+#[derive(Debug)]
+pub struct SuccessPayload {
+    pub payload: FinalityCheckpointPayload,
+    pub endpoint: String
+}
+#[derive(Debug)]
+pub struct FailurePayload {
+    pub payload: reqwest::Error,
+    pub endpoint: String
+}
+
+#[derive(Debug)]
+pub struct GroupedResult {
+    pub success: HashMap<String, Vec<SuccessPayload>>,
+    pub failure: Vec<FailurePayload>
 }
 
 #[derive(Debug)]

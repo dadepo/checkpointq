@@ -2,7 +2,7 @@ use crate::args::{Cli, Network};
 use clap::Parser;
 use crate::client::CheckpointClient;
 use crate::client::StateId;
-use crate::processor::group_by_root_hash;
+use crate::processor::group_success_failure;
 use crate::StateId::Slot;
 
 mod args;
@@ -42,6 +42,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let checkpoint_client = CheckpointClient::new(client, stateId, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    group_by_root_hash(result);
+    dbg!(group_success_failure(result));
     Ok(())
 }
