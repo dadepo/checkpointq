@@ -6,22 +6,18 @@ pub fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedR
     let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = response_payload
         .into_iter()
         .fold((vec![], vec![]), |mut acc, result| {
-        match result.payload {
-            Ok(success) => {
+            if let Ok(success) = result.payload {
                 acc.0.push(SuccessPayload {
                     payload: success,
                     endpoint: result.endpoint
-                });
-                acc
-            },
-            Err(err) => {
+                })
+            } else {
                 acc.1.push(FailurePayload {
-                    payload: err,
+                    payload: result.payload.err().unwrap(), // guarantee not to panic
                     endpoint: result.endpoint
                 });
-                acc
             }
-        }
+            acc
     });
 
     let mut hash_to_successes: HashMap<String, Vec<SuccessPayload>> = HashMap::new();
