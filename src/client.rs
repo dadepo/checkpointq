@@ -1,10 +1,10 @@
 use std::collections::HashMap;
+use std::fmt;
+use std::fmt::Formatter;
 use crate::args::Network;
-use reqwest::header::CONTENT_TYPE;
 use serde::{Serialize, Deserialize};
-use futures::prelude::*;
 use futures::stream::FuturesUnordered;
-use futures::future::{select_all, FutureExt, join_all};
+use futures::future::{select_all, join_all};
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -30,13 +30,6 @@ const DEFAULT_SEPOLIA: [&'static str; 2] = [
     "https://sepolia.beaconstate.info",
     "https://sepolia.checkpoint-sync.ethdevops.io",
 ];
-
-// `Req/Res
-pub struct CheckpointRes {
-    network: Network,
-    endpoints: Vec<String>,
-    checkpoint_root: String
-}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncingRes {
@@ -105,6 +98,15 @@ pub enum StateId {
     Slot(u128) // TODO is u128 to big?
 }
 
+impl fmt::Display for StateId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            StateId::Finalized => write!(f, "finalized"),
+            StateId::Slot(slot) => write!(f, "{:?}", slot.to_string())
+        }
+    }
+}
+
 impl CheckpointClient {
     pub fn new(client: reqwest::Client, state_id: StateId, endpoints: Vec<String>) -> Self {
         Self {
@@ -126,9 +128,9 @@ impl CheckpointClient {
             }
         }
     }
-    pub async fn get_head_slot(client: reqwest::Client, endpoints: Vec<String>) -> Result<u128, Box<dyn std::error::Error>> {
+    pub async fn _get_head_slot(client: reqwest::Client, endpoints: Vec<String>) -> Result<u128, Box<dyn std::error::Error>> {
         // TODO Add retry mechanism
-        let mut futures = FuturesUnordered::new();
+        let futures = FuturesUnordered::new();
 
         endpoints.into_iter().for_each(|endpoint| {
             futures.push(client.get(format!("{}{}", endpoint, "/eth/v1/node/syncing")).send());
@@ -144,7 +146,8 @@ impl CheckpointClient {
         let endpoints = &self.endpoints;
         join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
-                let result = self.client.get(format!("{}{}", endpoint.clone(), "/eth/v1/beacon/states/finalized/finality_checkpoints")).send();
+                let path = format!("/eth/v1/beacon/states/{}/finality_checkpoints", self.state_id.to_string());
+                let result = self.client.get(format!("{}{}", endpoint.clone(), path)).send();
                 match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream

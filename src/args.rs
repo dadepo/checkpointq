@@ -24,9 +24,3 @@ pub enum Network {
     Goerli,
     Sepolia,
 }
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum Slot {
-    Head,
-    U128(u128)
-}

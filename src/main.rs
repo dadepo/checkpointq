@@ -1,4 +1,4 @@
-use crate::args::{Cli, Network};
+use crate::args::Cli;
 use clap::Parser;
 use crate::client::CheckpointClient;
 use crate::client::StateId;
@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 
     // 2. get the state id to get the checkpoint from. If none is given use the finalized
-    let stateId: StateId = if input.slot == "finalized" {
+    let state_id: StateId = if input.slot == "finalized" {
         StateId::Finalized
     } else {
         match input.slot.parse::<u128>() {
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let checkpoint_client = CheckpointClient::new(client, stateId, endpoints);
+    let checkpoint_client = CheckpointClient::new(client, state_id, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
     dbg!(group_success_failure(result));
     Ok(())

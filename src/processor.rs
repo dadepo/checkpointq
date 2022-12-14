@@ -1,10 +1,9 @@
 use std::collections::{HashMap};
-use futures::StreamExt;
 use crate::client::{FailurePayload, GroupedResult, ResponsePayload, SuccessPayload};
 
 
-pub fn group_success_failure(responsePayload: Vec<ResponsePayload>) -> GroupedResult {
-    let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = responsePayload
+pub fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResult {
+    let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = response_payload
         .into_iter()
         .fold((vec![], vec![]), |mut acc, result| {
         match result.payload {
