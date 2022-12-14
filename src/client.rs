@@ -146,8 +146,8 @@ impl CheckpointClient {
         let endpoints = &self.endpoints;
         join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
-                let path = format!("/eth/v1/beacon/states/{}/finality_checkpoints", self.state_id.to_string());
-                let result = self.client.get(format!("{}{}", endpoint.clone(), path)).send();
+                let path = format!("{}/eth/v1/beacon/states/{}/finality_checkpoints", endpoint.clone(), self.state_id.to_string());
+                let result = self.client.get(path).send();
                 match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream
