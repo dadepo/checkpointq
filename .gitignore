@@ -1,1 +1,5 @@
 /target
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/eth_checkpoint.iml
+/learning.txt

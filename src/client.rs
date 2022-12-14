@@ -64,23 +64,21 @@ pub struct Data {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FinalityCheckpointResp {
+pub struct FinalityCheckpointPayload {
     pub data: Data,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct UrlFinalityCheckpointResp {
-    pub data: Data,
-    pub url: String
+#[derive(Debug)]
+pub struct ResponsePayload {
+    pub payload: Result<FinalityCheckpointPayload, reqwest::Error>,
+    pub endpoint: String
 }
-
-pub type Finality_Results = Vec<(Result<FinalityCheckpointResp, reqwest::Error>, String)>;
 
 #[derive(Debug)]
 pub struct CheckpointClient {
     client: reqwest::Client,
     endpoints: Vec<String>,
-    stateId: StateId
+    state_id: StateId
 }
 
 #[derive(Debug)]
@@ -90,11 +88,11 @@ pub enum StateId {
 }
 
 impl CheckpointClient {
-    pub fn new(client: reqwest::Client, stateId: StateId, endpoints: Vec<String>) -> Self {
+    pub fn new(client: reqwest::Client, state_id: StateId, endpoints: Vec<String>) -> Self {
         Self {
             client,
             endpoints,
-            stateId
+            state_id
         }
     }
     pub fn default_network_endpoints(network: Network) -> Vec<String> {
@@ -124,18 +122,26 @@ impl CheckpointClient {
         let head_slot = item_resolved?.json::<SyncingResGetResponse>().await?.data.head_slot.parse::<u128>()?;
         Ok(head_slot)
     }
-    pub async fn fetch_finality_checkpoints(&self) -> Finality_Results {
+    pub async fn fetch_finality_checkpoints(&self) -> Vec<ResponsePayload> {
         let endpoints = &self.endpoints;
         join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
                 let result = self.client.get(format!("{}{}", endpoint.clone(), "/eth/v1/beacon/states/finalized/finality_checkpoints")).send();
-                let result = match result.await {
+                match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream
-                    Ok(res) => res.json::<FinalityCheckpointResp>().await,
-                    Err(e) => Err(e)
-                };
-                (result, endpoint.clone())
+                    Ok(res) => {
+                        ResponsePayload {
+                            payload: res.json::<FinalityCheckpointPayload>().await,
+                            endpoint: endpoint.clone() }
+                    },
+                    Err(e) => {
+                        ResponsePayload {
+                            payload: Err(e),
+                            endpoint: endpoint.clone()
+                        }
+                    }
+                }
             }.await;
             raw_response
         })).await
