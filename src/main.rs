@@ -1,9 +1,10 @@
-use crate::args::Cli;
+use crate::args::{Cli, DisplayLevel};
 use clap::Parser;
 use crate::client::CheckpointClient;
 use crate::client::StateId;
-use crate::processor::group_success_failure;
+use crate::processor::{display_result, group_success_failure, to_displayable_result};
 use crate::StateId::Slot;
+use colored::*;
 
 mod args;
 mod client;
@@ -42,6 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    dbg!(group_success_failure(result));
+    let result1 = group_success_failure(result);
+    let to_display = to_displayable_result(result1);
+    display_result(to_display, DisplayLevel::Normal);
     Ok(())
 }

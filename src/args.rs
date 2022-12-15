@@ -24,3 +24,8 @@ pub enum Network {
     Goerli,
     Sepolia,
 }
+
+pub enum DisplayLevel {
+    Normal,
+    Verbose
+}

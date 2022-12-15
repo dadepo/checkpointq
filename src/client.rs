@@ -86,6 +86,13 @@ pub struct GroupedResult {
 }
 
 #[derive(Debug)]
+pub struct DisplayableResult {
+    pub canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
+    pub non_canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
+    pub failure: Vec<FailurePayload>
+}
+
+#[derive(Debug)]
 pub struct CheckpointClient {
     client: reqwest::Client,
     endpoints: Vec<String>,
