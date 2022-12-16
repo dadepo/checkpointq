@@ -41,10 +41,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    // 3. get the response display level
+    let display_level = input.display;
+
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
     let result1 = group_success_failure(result);
     let to_display = to_displayable_result(result1);
-    display_result(to_display, DisplayLevel::Normal);
+    display_result(to_display, display_level);
     Ok(())
 }

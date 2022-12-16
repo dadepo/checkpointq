@@ -15,7 +15,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub endpoints: Vec<String>,
     #[arg(short, long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
-    pub slot: String
+    pub slot: String,
+    #[arg(short, long,  value_enum, default_value_t = DisplayLevel::Normal, help = "normal or verbose response")]
+    pub display: DisplayLevel
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -25,6 +27,7 @@ pub enum Network {
     Sepolia,
 }
 
+#[derive(ValueEnum, Clone, Debug)]
 pub enum DisplayLevel {
     Normal,
     Verbose
