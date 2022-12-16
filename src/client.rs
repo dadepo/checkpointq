@@ -124,15 +124,9 @@ impl CheckpointClient {
     }
     pub fn default_network_endpoints(network: Network) -> Vec<String> {
         match network {
-            Network::Mainnet => {
-                return DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect();
-            },
-            Network::Goerli => {
-                return DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect();
-            },
-            Network::Sepolia => {
-                return DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect();
-            }
+            Network::Mainnet => DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect(),
+            Network::Goerli => DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect(),
+            Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect()
         }
     }
     pub async fn _get_head_slot(client: reqwest::Client, endpoints: Vec<String>) -> Result<u128, Box<dyn std::error::Error>> {
