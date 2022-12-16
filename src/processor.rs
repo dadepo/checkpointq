@@ -81,7 +81,7 @@ pub fn display_result(displayable_result: DisplayableResult, display_level: Disp
 
 fn normal_result(displayable_result: DisplayableResult) {
     if let Some(canonical_result) = displayable_result.canonical {
-        println!("{}:\n \t{}", "Checkpoint".blue(), canonical_result.keys().next().unwrap().green().bold())
+        println!("{}:\n \t{}", "Block root".blue(), canonical_result.keys().next().unwrap().green().bold())
     };
 
     if let Some(non_canonical_result) = displayable_result.non_canonical {
