@@ -47,13 +47,13 @@ pub fn to_displayable_result(grouped_result: GroupedResult) -> DisplayableResult
           failure = grouped_result.failure;
       } else {
           // more than one results, pick one with values more than 2/3
-          let total_value = (grouped_result.success.values().len() as f64);
+          let total_value = grouped_result.success.values().len() as f64;
           let threshold = 2f64/3f64 * total_value;
           let possible_canonical_results: HashMap<String, Vec<SuccessPayload>> =
               grouped_result
                   .success
                   .into_iter()
-                  .filter(|(key, values)| {
+                  .filter(|(_key, values)| {
                       values.len() as f64 > threshold
                   }).collect();
           if possible_canonical_results.keys().len() == 1 {

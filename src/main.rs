@@ -1,10 +1,9 @@
-use crate::args::{Cli, DisplayLevel};
+use crate::args::Cli;
 use clap::Parser;
 use crate::client::CheckpointClient;
 use crate::client::StateId;
 use crate::processor::{display_result, group_success_failure, to_displayable_result};
 use crate::StateId::Slot;
-use colored::*;
 
 mod args;
 mod client;
