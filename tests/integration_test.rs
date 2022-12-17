@@ -5,7 +5,7 @@ use eth_checkpoint_lib::*;
 use eth_checkpoint_lib::client::{CheckpointClient, HttpClient, StateId, FinalityCheckpointPayload, Data, BlockInfo};
 use async_trait::async_trait;
 use serde::Serialize;
-use eth_checkpoint_lib::processor::{group_success_failure, to_displayable_result};
+use eth_checkpoint_lib::processor::process_to_displayable_format;
 
 type Req = String;
 type BlockRootRes = String;
@@ -62,6 +62,5 @@ pub async fn test_single_result() {
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    let displayable_result = to_displayable_result(group_success_failure(result));
-    dbg!(displayable_result);
+    dbg!(result);
 }

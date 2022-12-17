@@ -7,6 +7,7 @@ use futures::stream::FuturesUnordered;
 use futures::future::{select_all, join_all};
 use reqwest::{Error, Response};
 use async_trait::async_trait;
+use crate::processor::process_to_displayable_format;
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -157,9 +158,9 @@ impl<C: HttpClient> CheckpointClient<C> {
         let head_slot = item_resolved?.json::<SyncingResGetResponse>().await?.data.head_slot.parse::<u128>()?;
         Ok(head_slot)
     }
-    pub async fn fetch_finality_checkpoints(&self) -> Vec<ResponsePayload> {
+    pub async fn fetch_finality_checkpoints(&self) -> DisplayableResult {
         let endpoints = &self.endpoints;
-        join_all(endpoints.iter().map(|endpoint| async {
+        let results = join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
                 let path = format!("{}/eth/v1/beacon/states/{}/finality_checkpoints", endpoint.clone(), self.state_id.to_string());
                 let result = self.client.send_request(path);
@@ -180,6 +181,8 @@ impl<C: HttpClient> CheckpointClient<C> {
                 }
             }.await;
             raw_response
-        })).await
+        })).await;
+
+        process_to_displayable_format(results)
     }
 }

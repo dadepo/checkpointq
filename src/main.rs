@@ -2,7 +2,7 @@ use eth_checkpoint_lib::args::Cli;
 use clap::Parser;
 use eth_checkpoint_lib::client::{CheckpointClient, default_network_endpoints};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
-use eth_checkpoint_lib::processor::{display_result, group_success_failure, to_displayable_result};
+use eth_checkpoint_lib::processor::display_result;
 
 
 #[tokio::main]
@@ -41,8 +41,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    let result1 = group_success_failure(result);
-    let to_display = to_displayable_result(result1);
-    display_result(to_display, display_level);
+    display_result(result, display_level);
     Ok(())
 }

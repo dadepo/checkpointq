@@ -3,7 +3,7 @@ use crate::args::DisplayLevel;
 use crate::client::{DisplayableResult, FailurePayload, GroupedResult, ResponsePayload, SuccessPayload};
 use colored::*;
 
-pub fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResult {
+fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResult {
     let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = response_payload
         .into_iter()
         .fold((vec![], vec![]), |mut acc, result| {
@@ -36,7 +36,8 @@ pub fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedR
     }
 }
 
-pub fn to_displayable_result(grouped_result: GroupedResult) -> DisplayableResult {
+pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> DisplayableResult {
+    let grouped_result = group_success_failure(response_payload);
     let mut canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;
     let mut non_canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;
     let mut failure: Vec<FailurePayload> = vec![];
