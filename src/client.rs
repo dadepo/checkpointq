@@ -66,7 +66,7 @@ pub struct Data {
     pub previous_justified: BlockInfo,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FinalityCheckpointPayload {
     pub data: Data,
 }
