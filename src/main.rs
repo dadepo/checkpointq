@@ -1,13 +1,9 @@
-use crate::args::Cli;
+use eth_checkpoint_lib::args::Cli;
 use clap::Parser;
-use crate::client::CheckpointClient;
-use crate::client::StateId;
-use crate::processor::{display_result, group_success_failure, to_displayable_result};
-use crate::StateId::Slot;
+use eth_checkpoint_lib::client::{CheckpointClient, default_network_endpoints};
+use eth_checkpoint_lib::client::{StateId, StateId::Slot};
+use eth_checkpoint_lib::processor::{display_result, group_success_failure, to_displayable_result};
 
-mod args;
-mod client;
-mod processor;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Get the endpoints
     let endpoints: Vec<String> = if let Some(network) = input.network {
-        CheckpointClient::default_network_endpoints(network)
+        default_network_endpoints(network)
     } else {
         input.endpoints
     };

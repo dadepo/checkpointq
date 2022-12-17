@@ -5,6 +5,8 @@ use crate::args::Network;
 use serde::{Serialize, Deserialize};
 use futures::stream::FuturesUnordered;
 use futures::future::{select_all, join_all};
+use reqwest::{Error, Response};
+use async_trait::async_trait;
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -25,11 +27,18 @@ const DEFAULT_GOERLI: [&'static str; 6] = [
     "https://goerli-sync.invis.tools",
     "https://goerli.checkpoint-sync.ethdevops.io"
 ];
-
 const DEFAULT_SEPOLIA: [&'static str; 2] = [
     "https://sepolia.beaconstate.info",
     "https://sepolia.checkpoint-sync.ethdevops.io",
 ];
+
+pub fn default_network_endpoints(network: Network) -> Vec<String> {
+    match network {
+        Network::Mainnet => DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect(),
+        Network::Goerli => DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect(),
+        Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect()
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncingRes {
@@ -93,8 +102,8 @@ pub struct DisplayableResult {
 }
 
 #[derive(Debug)]
-pub struct CheckpointClient {
-    client: reqwest::Client,
+pub struct CheckpointClient<C: HttpClient> {
+    client: C,
     endpoints: Vec<String>,
     state_id: StateId
 }
@@ -114,19 +123,24 @@ impl fmt::Display for StateId {
     }
 }
 
-impl CheckpointClient {
-    pub fn new(client: reqwest::Client, state_id: StateId, endpoints: Vec<String>) -> Self {
+#[async_trait]
+pub trait HttpClient {
+    async fn send_request(&self, path: String) -> Result<Response, Error>;
+}
+
+#[async_trait]
+impl HttpClient for reqwest::Client {
+    async fn send_request(&self, path: String) -> Result<Response, Error> {
+        self.get(path).send().await
+    }
+}
+
+impl<C: HttpClient> CheckpointClient<C> {
+    pub fn new(client: C, state_id: StateId, endpoints: Vec<String>) -> Self {
         Self {
             client,
             endpoints,
             state_id
-        }
-    }
-    pub fn default_network_endpoints(network: Network) -> Vec<String> {
-        match network {
-            Network::Mainnet => DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect(),
-            Network::Goerli => DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect(),
-            Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect()
         }
     }
     pub async fn _get_head_slot(client: reqwest::Client, endpoints: Vec<String>) -> Result<u128, Box<dyn std::error::Error>> {
@@ -134,7 +148,7 @@ impl CheckpointClient {
         let futures = FuturesUnordered::new();
 
         endpoints.into_iter().for_each(|endpoint| {
-            futures.push(client.get(format!("{}{}", endpoint, "/eth/v1/node/syncing")).send());
+            futures.push(client.send_request(format!("{}{}", endpoint, "/eth/v1/node/syncing")));
         });
 
         let (item_resolved, _, _) =
@@ -148,7 +162,7 @@ impl CheckpointClient {
         join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
                 let path = format!("{}/eth/v1/beacon/states/{}/finality_checkpoints", endpoint.clone(), self.state_id.to_string());
-                let result = self.client.get(path).send();
+                let result = self.client.send_request(path);
                 match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream
