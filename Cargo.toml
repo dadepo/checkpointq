@@ -20,6 +20,9 @@ async-trait = "0.1.59"
 [dev-dependencies]
 http = "0.2.8"
 
+[profile.release]
+panic = 'abort'
+
 [lib]
 name = "eth_checkpoint_lib"
 path = "src/lib.rs"

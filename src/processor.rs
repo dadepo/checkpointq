@@ -7,16 +7,15 @@ fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResul
     let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = response_payload
         .into_iter()
         .fold((vec![], vec![]), |mut acc, result| {
-            if let Ok(success) = result.payload {
-                acc.0.push(SuccessPayload {
+            match result.payload {
+                Ok(success) => acc.0.push(SuccessPayload {
                     payload: success,
                     endpoint: result.endpoint
-                })
-            } else {
-                acc.1.push(FailurePayload {
-                    payload: result.payload.err().unwrap(), // guarantee not to panic
+                }),
+                Err(error) => acc.1.push(FailurePayload {
+                    payload: error,
                     endpoint: result.endpoint
-                });
+                }),
             }
             acc
     });
