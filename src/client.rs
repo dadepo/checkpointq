@@ -1,13 +1,31 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::Formatter;
+use std::fmt::{Debug, Display, Formatter};
 use crate::args::Network;
 use serde::{Serialize, Deserialize};
 use futures::stream::FuturesUnordered;
 use futures::future::{select_all, join_all};
 use reqwest::{Error, Response};
+use serde::de::StdError;
 use async_trait::async_trait;
+use crate::errors::AppError;
 use crate::processor::process_to_displayable_format;
+
+impl From<reqwest::Error> for AppError {
+    fn from(value: Error) -> Self {
+        AppError::AppError(value.to_string())
+    }
+}
+
+impl Display for AppError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", *self)
+    }
+}
+
+impl StdError for AppError {
+
+}
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -74,7 +92,7 @@ pub struct FinalityCheckpointPayload {
 
 #[derive(Debug)]
 pub struct ResponsePayload {
-    pub payload: Result<FinalityCheckpointPayload, reqwest::Error>,
+    pub payload: Result<FinalityCheckpointPayload, AppError>,
     pub endpoint: String
 }
 
@@ -85,7 +103,7 @@ pub struct SuccessPayload {
 }
 #[derive(Debug)]
 pub struct FailurePayload {
-    pub payload: reqwest::Error,
+    pub payload: AppError,
     pub endpoint: String
 }
 
@@ -126,13 +144,13 @@ impl fmt::Display for StateId {
 
 #[async_trait]
 pub trait HttpClient {
-    async fn send_request(&self, path: String) -> Result<Response, Error>;
+    async fn send_request(&self, path: String) -> Result<Response, AppError>;
 }
 
 #[async_trait]
 impl HttpClient for reqwest::Client {
-    async fn send_request(&self, path: String) -> Result<Response, Error> {
-        self.get(path).send().await
+    async fn send_request(&self, path: String) -> Result<Response, AppError> {
+        self.get(path).send().await.map_err(|e| AppError::AppError(e.to_string()))
     }
 }
 
@@ -169,7 +187,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                     // Catch error before parsing to json so that original error message is used upstream
                     Ok(res) => {
                         ResponsePayload {
-                            payload: res.json::<FinalityCheckpointPayload>().await,
+                            payload: res.json::<FinalityCheckpointPayload>().await.map_err(|e| AppError::AppError(e.to_string())),
                             endpoint: endpoint.clone() }
                     },
                     Err(e) => {

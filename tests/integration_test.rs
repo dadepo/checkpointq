@@ -1,22 +1,28 @@
+extern crate core;
+
 use std::collections::HashMap;
 use std::convert::Infallible;
+use futures::StreamExt;
 use reqwest::{Error, Response};
 use eth_checkpoint_lib::*;
 use eth_checkpoint_lib::client::{CheckpointClient, HttpClient, StateId, FinalityCheckpointPayload, Data, BlockInfo};
 use async_trait::async_trait;
+use eth_checkpoint_lib::errors;
 use serde::Serialize;
+use eth_checkpoint_lib::errors::AppError;
 use eth_checkpoint_lib::processor::process_to_displayable_format;
 
 type Req = String;
 type BlockRootRes = String;
+type ErrorRes = String;
 
 
 struct MockClient {
     base: FinalityCheckpointPayload,
-    paths: Vec<(Req, BlockRootRes)>
+    paths: Vec<(Req, Result<BlockRootRes, ErrorRes>)>
 }
 impl MockClient {
-    pub fn new(paths: Vec<(Req, BlockRootRes)>) -> Self {
+    pub fn new(paths: Vec<(Req, Result<BlockRootRes, ErrorRes>)>) -> Self {
         Self {
             base: FinalityCheckpointPayload {
                 data: Data {
@@ -33,16 +39,34 @@ impl MockClient {
 
 #[async_trait]
 impl HttpClient for MockClient {
-    async fn send_request(&self, path: String) -> Result<Response, Error> {
-        let (_, block_hash_response) = self.paths.iter().filter(|(rq, _)| {
-            path.contains(rq)
-        }).next().unwrap();
+    async fn send_request(&self, path: String) -> Result<Response, AppError> {
+
+        let responses:
+            (Vec<(Req, Result<BlockRootRes, ErrorRes>)>,
+             Vec<(Req, Result<BlockRootRes, ErrorRes>)>) = self.paths.clone().into_iter()
+            .partition(|(req, res)| res.is_ok());
+
+        let success_responses: Vec<Result<BlockRootRes, ErrorRes>> = responses.0.into_iter().filter(|(req, res)|{
+            path.contains(req)
+        }).map(|(_, res)| res).collect();
+
+        let err_responses: Vec<Result<BlockRootRes, ErrorRes>> = responses.1.into_iter().filter(|(req, res)|{
+            path.contains(req)
+        }).map(|(_, res)| res).collect();
 
         let mut payload = FinalityCheckpointPayload {
             ..Clone::clone(&self.base)
         };
-        payload.data.finalized.root = block_hash_response.to_string();
-        Ok(Response::from(http::response::Response::new(serde_json::to_string(&payload).unwrap())))
+        if !success_responses.is_empty() {
+            payload.data.finalized.root = success_responses.into_iter().nth(0).unwrap().ok().unwrap().to_string();
+            Ok(Response::from(http::response::Response::new(serde_json::to_string(&payload).unwrap())))
+        } else {
+            if !err_responses.is_empty() {
+                Err(AppError::AppError(err_responses.into_iter().nth(0).unwrap().err().unwrap().to_string()))
+            } else {
+                Err(AppError::AppError("mock error".to_string()))
+            }
+        }
     }
 }
 
@@ -50,9 +74,9 @@ impl HttpClient for MockClient {
 pub async fn test_single_result() {
     let client = MockClient::new(
         vec![
-            ("http://www.good1.com".to_string(), "Hash".to_string()),
-            ("http://www.good2.com".to_string(), "Hash1".to_string()),
-            ("http://www.bad.com".to_string(), "error".to_string())]
+            ("http://www.good1.com".to_string(), Ok("Hash".to_string())),
+            ("http://www.good2.com".to_string(), Ok("Hash1".to_string())),
+            ("http://www.bad.com".to_string(), Err("error".to_string()))]
     );
     let endpoints = vec![
         "http://www.good1.com".to_string(),

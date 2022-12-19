@@ -44,7 +44,6 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
     if !grouped_result.success.is_empty() {
       if grouped_result.success.keys().len() == 1 {
           canonical = Some(grouped_result.success);
-          failure = grouped_result.failure;
       } else {
           // more than one results, pick one with values more than 2/3
           let total_value = grouped_result.success.values().len() as f64;
@@ -66,9 +65,10 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
               non_canonical = Some(passed_threshold.into_iter().chain(below_threshold).collect())
           }
       }
-    } else {
-        failure = grouped_result.failure;
     };
+
+    failure = grouped_result.failure;
+
     DisplayableResult {
         canonical,
         non_canonical,
