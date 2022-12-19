@@ -51,7 +51,7 @@ pub async fn test_single_result() {
     let client = MockClient::new(
         vec![
             ("http://www.good1.com".to_string(), "Hash".to_string()),
-            ("http://www.good2.com".to_string(), "Hash".to_string()),
+            ("http://www.good2.com".to_string(), "Hash1".to_string()),
             ("http://www.bad.com".to_string(), "error".to_string())]
     );
     let endpoints = vec![

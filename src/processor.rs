@@ -49,17 +49,21 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
           // more than one results, pick one with values more than 2/3
           let total_value = grouped_result.success.values().len() as f64;
           let threshold = 2f64/3f64 * total_value;
-          let possible_canonical_results: HashMap<String, Vec<SuccessPayload>> =
+          let (passed_threshold, below_threshold): (HashMap<String, Vec<SuccessPayload>>, HashMap<String, Vec<SuccessPayload>>) =
               grouped_result
                   .success
                   .into_iter()
-                  .filter(|(_key, values)| {
+                  .partition(|(_, values)| {
                       values.len() as f64 > threshold
-                  }).collect();
-          if possible_canonical_results.keys().len() == 1 {
-              canonical = Some(possible_canonical_results)
+                  });
+          if passed_threshold.keys().len() == 1 {
+              // if there is only one value thay passed the threshold that is the canonical result
+              canonical = Some(passed_threshold)
           } else {
-              non_canonical = Some(possible_canonical_results)
+              // else the non_canonical will include
+              // the multiple values that passed the threshold
+              // the values that did not even pass the threshold
+              non_canonical = Some(passed_threshold.into_iter().chain(below_threshold).collect())
           }
       }
     } else {
