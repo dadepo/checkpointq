@@ -71,20 +71,35 @@ impl HttpClient for MockClient {
 }
 
 #[tokio::test]
-pub async fn test_single_result() {
+pub async fn test_only_canonical_results() {
+    // Test case where only canonical results are returned
+    let expected_block_root = "Hash1";
+    let first_mock = ("http://www.good1.com".to_string(), Ok(expected_block_root.to_string()));
+    let second_mock = ("http://www.good2.com".to_string(), Ok(expected_block_root.to_string()));
+    let third_mock = ("http://www.good3.com".to_string(), Ok(expected_block_root.to_string()));
     let client = MockClient::new(
         vec![
-            ("http://www.good1.com".to_string(), Ok("Hash".to_string())),
-            ("http://www.good2.com".to_string(), Ok("Hash1".to_string())),
-            ("http://www.bad.com".to_string(), Err("error".to_string()))]
+            first_mock.clone(),
+            second_mock.clone(),
+            third_mock.clone()
+        ]
     );
     let endpoints = vec![
-        "http://www.good1.com".to_string(),
-        "http://www.good2.com".to_string(),
-        "http://www.bad.com".to_string()
+        first_mock.0.clone(),
+        second_mock.0.clone(),
+        third_mock.0.clone()
     ];
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    dbg!(result);
+    // assert only canonical results are returned
+    assert!(result.non_canonical.is_none());
+    assert_eq!(result.failure.len(), 0);
+    // assert the correct hash is returned
+    let canonical_result = result.canonical.unwrap();
+    let success_payload = canonical_result.get(&first_mock.1.clone().unwrap()).unwrap();
+    assert_eq!(success_payload.len(), 3);
+    assert_eq!(&success_payload.get(0).unwrap().payload.data.finalized.root, &expected_block_root.to_string());
+    assert_eq!(&success_payload.get(1).unwrap().payload.data.finalized.root, &expected_block_root.to_string());
+    assert_eq!(&success_payload.get(2).unwrap().payload.data.finalized.root, &expected_block_root.to_string());
 }
