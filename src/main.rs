@@ -2,6 +2,7 @@ use eth_checkpoint_lib::args::Cli;
 use clap::Parser;
 use eth_checkpoint_lib::client::{CheckpointClient, default_network_endpoints};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
+use eth_checkpoint_lib::errors::AppError;
 use eth_checkpoint_lib::processor::display_result;
 
 
@@ -13,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Validations
     // TODO move to clap?
     if input.network.is_some() && !input.endpoints.is_empty() {
-        Err("Either set network or endpoints but not both")?
+        Err(AppError::NetworkAndEndpoint("Either set network or endpoints but not both".to_string()))?
     }
 
     // get values needed from the cli
@@ -25,6 +26,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         input.endpoints
     };
 
+    if endpoints.len() < 3 {
+        Err(AppError::EndpointsBelowThreshold("Endpoints must be greater than 3".to_string()))?
+    }
 
     // 2. get the state id to get the checkpoint from. If none is given use the finalized
     let state_id: StateId = if input.slot == "finalized" {

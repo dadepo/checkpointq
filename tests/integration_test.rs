@@ -62,9 +62,9 @@ impl HttpClient for MockClient {
             Ok(Response::from(http::response::Response::new(serde_json::to_string(&payload).unwrap())))
         } else {
             if !err_responses.is_empty() {
-                Err(AppError::AppError(err_responses.into_iter().nth(0).unwrap().err().unwrap().to_string()))
+                Err(AppError::GenericError(err_responses.into_iter().nth(0).unwrap().err().unwrap().to_string()))
             } else {
-                Err(AppError::AppError("mock error".to_string()))
+                Err(AppError::GenericError("mock error".to_string()))
             }
         }
     }

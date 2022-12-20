@@ -13,7 +13,7 @@ use crate::processor::process_to_displayable_format;
 
 impl From<reqwest::Error> for AppError {
     fn from(value: Error) -> Self {
-        AppError::AppError(value.to_string())
+        AppError::GenericError(value.to_string())
     }
 }
 
@@ -150,7 +150,7 @@ pub trait HttpClient {
 #[async_trait]
 impl HttpClient for reqwest::Client {
     async fn send_request(&self, path: String) -> Result<Response, AppError> {
-        self.get(path).send().await.map_err(|e| AppError::AppError(e.to_string()))
+        self.get(path).send().await.map_err(|e| AppError::GenericError(e.to_string()))
     }
 }
 
@@ -187,7 +187,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                     // Catch error before parsing to json so that original error message is used upstream
                     Ok(res) => {
                         ResponsePayload {
-                            payload: res.json::<FinalityCheckpointPayload>().await.map_err(|e| AppError::AppError(e.to_string())),
+                            payload: res.json::<FinalityCheckpointPayload>().await.map_err(|e| AppError::GenericError(e.to_string())),
                             endpoint: endpoint.clone() }
                     },
                     Err(e) => {

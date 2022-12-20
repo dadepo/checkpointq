@@ -1,5 +1,7 @@
 
 #[derive(Debug)]
 pub enum AppError {
-    AppError(String)
+    GenericError(String),
+    NetworkAndEndpoint(String),
+    EndpointsBelowThreshold(String)
 }
