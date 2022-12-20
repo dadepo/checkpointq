@@ -1,15 +1,15 @@
+use crate::args::Network;
+use crate::errors::AppError;
+use crate::processor::process_to_displayable_format;
+use async_trait::async_trait;
+use futures::future::{join_all, select_all};
+use futures::stream::FuturesUnordered;
+use reqwest::{Error, Response};
+use serde::de::StdError;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
-use crate::args::Network;
-use serde::{Serialize, Deserialize};
-use futures::stream::FuturesUnordered;
-use futures::future::{select_all, join_all};
-use reqwest::{Error, Response};
-use serde::de::StdError;
-use async_trait::async_trait;
-use crate::errors::AppError;
-use crate::processor::process_to_displayable_format;
 
 impl From<reqwest::Error> for AppError {
     fn from(value: Error) -> Self {
@@ -23,9 +23,7 @@ impl Display for AppError {
     }
 }
 
-impl StdError for AppError {
-
-}
+impl StdError for AppError {}
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -44,7 +42,7 @@ const DEFAULT_GOERLI: [&'static str; 6] = [
     "https://prater-checkpoint-sync.stakely.io",
     "https://goerli.beaconstate.ethstaker.cc",
     "https://goerli-sync.invis.tools",
-    "https://goerli.checkpoint-sync.ethdevops.io"
+    "https://goerli.checkpoint-sync.ethdevops.io",
 ];
 const DEFAULT_SEPOLIA: [&'static str; 2] = [
     "https://sepolia.beaconstate.info",
@@ -55,7 +53,7 @@ pub fn default_network_endpoints(network: Network) -> Vec<String> {
     match network {
         Network::Mainnet => DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect(),
         Network::Goerli => DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect(),
-        Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect()
+        Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect(),
     }
 }
 
@@ -68,9 +66,8 @@ pub struct SyncingRes {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct SyncingResGetResponse {
-    data: SyncingRes
+    data: SyncingRes,
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct BlockInfo {
@@ -93,51 +90,51 @@ pub struct FinalityCheckpointPayload {
 #[derive(Debug)]
 pub struct ResponsePayload {
     pub payload: Result<FinalityCheckpointPayload, AppError>,
-    pub endpoint: String
+    pub endpoint: String,
 }
 
 #[derive(Debug)]
 pub struct SuccessPayload {
     pub payload: FinalityCheckpointPayload,
-    pub endpoint: String
+    pub endpoint: String,
 }
 #[derive(Debug)]
 pub struct FailurePayload {
     pub payload: AppError,
-    pub endpoint: String
+    pub endpoint: String,
 }
 
 #[derive(Debug)]
 pub struct GroupedResult {
     pub success: HashMap<String, Vec<SuccessPayload>>,
-    pub failure: Vec<FailurePayload>
+    pub failure: Vec<FailurePayload>,
 }
 
 #[derive(Debug)]
 pub struct DisplayableResult {
     pub canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
     pub non_canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
-    pub failure: Vec<FailurePayload>
+    pub failure: Vec<FailurePayload>,
 }
 
 #[derive(Debug)]
 pub struct CheckpointClient<C: HttpClient> {
     client: C,
     endpoints: Vec<String>,
-    state_id: StateId
+    state_id: StateId,
 }
 
 #[derive(Debug)]
 pub enum StateId {
     Finalized,
-    Slot(u128) // TODO is u128 to big?
+    Slot(u128), // TODO is u128 to big?
 }
 
 impl fmt::Display for StateId {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             StateId::Finalized => write!(f, "finalized"),
-            StateId::Slot(slot) => write!(f, "{:?}", slot.to_string())
+            StateId::Slot(slot) => write!(f, "{:?}", slot.to_string()),
         }
     }
 }
@@ -150,7 +147,10 @@ pub trait HttpClient {
 #[async_trait]
 impl HttpClient for reqwest::Client {
     async fn send_request(&self, path: String) -> Result<Response, AppError> {
-        self.get(path).send().await.map_err(|e| AppError::GenericError(e.to_string()))
+        self.get(path)
+            .send()
+            .await
+            .map_err(|e| AppError::GenericError(e.to_string()))
     }
 }
 
@@ -159,10 +159,13 @@ impl<C: HttpClient> CheckpointClient<C> {
         Self {
             client,
             endpoints,
-            state_id
+            state_id,
         }
     }
-    pub async fn _get_head_slot(client: reqwest::Client, endpoints: Vec<String>) -> Result<u128, Box<dyn std::error::Error>> {
+    pub async fn _get_head_slot(
+        client: reqwest::Client,
+        endpoints: Vec<String>,
+    ) -> Result<u128, Box<dyn std::error::Error>> {
         // TODO Add retry mechanism
         let futures = FuturesUnordered::new();
 
@@ -170,36 +173,46 @@ impl<C: HttpClient> CheckpointClient<C> {
             futures.push(client.send_request(format!("{}{}", endpoint, "/eth/v1/node/syncing")));
         });
 
-        let (item_resolved, _, _) =
-            select_all(futures).await;
+        let (item_resolved, _, _) = select_all(futures).await;
 
-        let head_slot = item_resolved?.json::<SyncingResGetResponse>().await?.data.head_slot.parse::<u128>()?;
+        let head_slot = item_resolved?
+            .json::<SyncingResGetResponse>()
+            .await?
+            .data
+            .head_slot
+            .parse::<u128>()?;
         Ok(head_slot)
     }
     pub async fn fetch_finality_checkpoints(&self) -> DisplayableResult {
         let endpoints = &self.endpoints;
         let results = join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
-                let path = format!("{}/eth/v1/beacon/states/{}/finality_checkpoints", endpoint.clone(), self.state_id.to_string());
+                let path = format!(
+                    "{}/eth/v1/beacon/states/{}/finality_checkpoints",
+                    endpoint.clone(),
+                    self.state_id.to_string()
+                );
                 let result = self.client.send_request(path);
                 match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream
-                    Ok(res) => {
-                        ResponsePayload {
-                            payload: res.json::<FinalityCheckpointPayload>().await.map_err(|e| AppError::GenericError(e.to_string())),
-                            endpoint: endpoint.clone() }
+                    Ok(res) => ResponsePayload {
+                        payload: res
+                            .json::<FinalityCheckpointPayload>()
+                            .await
+                            .map_err(|e| AppError::GenericError(e.to_string())),
+                        endpoint: endpoint.clone(),
                     },
-                    Err(e) => {
-                        ResponsePayload {
-                            payload: Err(e),
-                            endpoint: endpoint.clone()
-                        }
-                    }
+                    Err(e) => ResponsePayload {
+                        payload: Err(e),
+                        endpoint: endpoint.clone(),
+                    },
                 }
-            }.await;
+            }
+            .await;
             raw_response
-        })).await;
+        }))
+        .await;
 
         process_to_displayable_format(results)
     }

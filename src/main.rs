@@ -1,10 +1,9 @@
-use eth_checkpoint_lib::args::Cli;
 use clap::Parser;
-use eth_checkpoint_lib::client::{CheckpointClient, default_network_endpoints};
+use eth_checkpoint_lib::args::Cli;
+use eth_checkpoint_lib::client::{default_network_endpoints, CheckpointClient};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
 use eth_checkpoint_lib::errors::AppError;
 use eth_checkpoint_lib::processor::display_result;
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -14,7 +13,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Validations
     // TODO move to clap?
     if input.network.is_some() && !input.endpoints.is_empty() {
-        Err(AppError::NetworkAndEndpoint("Either set network or endpoints but not both".to_string()))?
+        Err(AppError::NetworkAndEndpoint(
+            "Either set network or endpoints but not both".to_string(),
+        ))?
     }
 
     // get values needed from the cli
@@ -27,7 +28,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     if endpoints.len() < 3 {
-        Err(AppError::EndpointsBelowThreshold("Endpoints must be greater than 3".to_string()))?
+        Err(AppError::EndpointsBelowThreshold(
+            "Endpoints must be greater than 3".to_string(),
+        ))?
     }
 
     // 2. get the state id to get the checkpoint from. If none is given use the finalized
@@ -36,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         match input.slot.parse::<u128>() {
             Ok(value) => Slot(value),
-            Err(_) => StateId::Finalized
+            Err(_) => StateId::Finalized,
         }
     };
 

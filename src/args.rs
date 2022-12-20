@@ -17,7 +17,7 @@ pub struct Cli {
     #[arg(short, long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
     pub slot: String,
     #[arg(short, long,  value_enum, default_value_t = DisplayLevel::Normal, help = "normal or verbose response")]
-    pub display: DisplayLevel
+    pub display: DisplayLevel,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
@@ -30,5 +30,5 @@ pub enum Network {
 #[derive(ValueEnum, Clone, Debug)]
 pub enum DisplayLevel {
     Normal,
-    Verbose
+    Verbose,
 }
