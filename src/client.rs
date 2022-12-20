@@ -2,28 +2,20 @@ use crate::args::Network;
 use crate::errors::AppError;
 use crate::processor::process_to_displayable_format;
 use async_trait::async_trait;
-use futures::future::{join_all, select_all};
-use futures::stream::FuturesUnordered;
+use futures::future::{join_all};
+
 use reqwest::{Error, Response};
-use serde::de::StdError;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Formatter};
 
 impl From<reqwest::Error> for AppError {
     fn from(value: Error) -> Self {
         AppError::GenericError(value.to_string())
     }
 }
-
-impl Display for AppError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", *self)
-    }
-}
-
-impl StdError for AppError {}
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
@@ -98,6 +90,7 @@ pub struct SuccessPayload {
     pub payload: FinalityCheckpointPayload,
     pub endpoint: String,
 }
+
 #[derive(Debug)]
 pub struct FailurePayload {
     pub payload: AppError,
@@ -139,6 +132,11 @@ impl fmt::Display for StateId {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct EndpointsConfig {
+    pub endpoints: HashMap<String, Vec<String>>,
+}
+
 #[async_trait]
 pub trait HttpClient {
     async fn send_request(&self, path: String) -> Result<Response, AppError>;
@@ -161,27 +159,6 @@ impl<C: HttpClient> CheckpointClient<C> {
             endpoints,
             state_id,
         }
-    }
-    pub async fn _get_head_slot(
-        client: reqwest::Client,
-        endpoints: Vec<String>,
-    ) -> Result<u128, Box<dyn std::error::Error>> {
-        // TODO Add retry mechanism
-        let futures = FuturesUnordered::new();
-
-        endpoints.into_iter().for_each(|endpoint| {
-            futures.push(client.send_request(format!("{}{}", endpoint, "/eth/v1/node/syncing")));
-        });
-
-        let (item_resolved, _, _) = select_all(futures).await;
-
-        let head_slot = item_resolved?
-            .json::<SyncingResGetResponse>()
-            .await?
-            .data
-            .head_slot
-            .parse::<u128>()?;
-        Ok(head_slot)
     }
     pub async fn fetch_finality_checkpoints(&self) -> DisplayableResult {
         let endpoints = &self.endpoints;

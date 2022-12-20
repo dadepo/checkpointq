@@ -4,15 +4,15 @@ use async_trait::async_trait;
 use eth_checkpoint_lib::client::{
     BlockInfo, CheckpointClient, Data, FinalityCheckpointPayload, HttpClient, StateId,
 };
-use eth_checkpoint_lib::errors;
+
 use eth_checkpoint_lib::errors::AppError;
-use eth_checkpoint_lib::processor::process_to_displayable_format;
-use eth_checkpoint_lib::*;
+
+
 use futures::StreamExt;
-use reqwest::{Error, Response};
-use serde::Serialize;
-use std::collections::HashMap;
-use std::convert::Infallible;
+use reqwest::{Response};
+
+
+
 
 type Req = String;
 type BlockRootRes = String;
@@ -56,19 +56,19 @@ impl HttpClient for MockClient {
             .paths
             .clone()
             .into_iter()
-            .partition(|(req, res)| res.is_ok());
+            .partition(|(_req, res)| res.is_ok());
 
         let success_responses: Vec<Result<BlockRootRes, ErrorRes>> = responses
             .0
             .into_iter()
-            .filter(|(req, res)| path.contains(req))
+            .filter(|(req, _res)| path.contains(req))
             .map(|(_, res)| res)
             .collect();
 
         let err_responses: Vec<Result<BlockRootRes, ErrorRes>> = responses
             .1
             .into_iter()
-            .filter(|(req, res)| path.contains(req))
+            .filter(|(req, _res)| path.contains(req))
             .map(|(_, res)| res)
             .collect();
 

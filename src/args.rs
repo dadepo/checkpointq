@@ -12,8 +12,12 @@ TODO
 pub struct Cli {
     #[arg(short, long, value_enum)]
     pub network: Option<Network>,
-    #[arg(short, long)]
-    pub endpoints: Vec<String>,
+    #[arg(
+        short,
+        long,
+        help = "path to config file where endpoints for network are listed. default is ./endpoint.yaml"
+    )]
+    pub endpoints: Option<String>,
     #[arg(short, long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
     pub slot: String,
     #[arg(short, long,  value_enum, default_value_t = DisplayLevel::Normal, help = "normal or verbose response")]

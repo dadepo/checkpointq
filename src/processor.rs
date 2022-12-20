@@ -40,7 +40,6 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
     let grouped_result = group_success_failure(response_payload);
     let mut canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;
     let mut non_canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;
-    let mut failure: Vec<FailurePayload> = vec![];
 
     if !grouped_result.success.is_empty() {
         if grouped_result.success.keys().len() == 1 {
@@ -73,24 +72,22 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
         }
     };
 
-    failure = grouped_result.failure;
-
     DisplayableResult {
         canonical,
         non_canonical,
-        failure,
+        failure: grouped_result.failure,
     }
 }
 
-pub fn display_result(displayable_result: DisplayableResult, display_level: DisplayLevel) {
+pub fn display_result(result: DisplayableResult, display_level: DisplayLevel) {
     match display_level {
-        DisplayLevel::Normal => normal_result(displayable_result),
-        DisplayLevel::Verbose => normal_result(displayable_result),
+        DisplayLevel::Normal => normal_result(result),
+        DisplayLevel::Verbose => normal_result(result),
     }
 }
 
-fn normal_result(displayable_result: DisplayableResult) {
-    if let Some(canonical_result) = displayable_result.canonical {
+fn normal_result(result: DisplayableResult) {
+    if let Some(canonical_result) = result.canonical {
         println!(
             "{}:\n \t{}",
             "Block root".blue(),
@@ -98,7 +95,7 @@ fn normal_result(displayable_result: DisplayableResult) {
         )
     };
 
-    if let Some(non_canonical_result) = displayable_result.non_canonical {
+    if let Some(non_canonical_result) = result.non_canonical {
         println!("{}", "Conflicting:".yellow().bold());
         for (key, values) in non_canonical_result {
             println!("\t Checkpoint: {}", key.yellow());
@@ -108,14 +105,11 @@ fn normal_result(displayable_result: DisplayableResult) {
         }
     }
 
-    if !displayable_result.failure.is_empty() {
+    if !result.failure.is_empty() {
         println!("{}", "Errors:".red().bold());
     }
-    displayable_result
-        .failure
-        .into_iter()
-        .for_each(|failure_value| {
-            println!("\t Endpoint: {}", failure_value.endpoint.red());
-            println!("\t Error: {}", failure_value.payload.to_string().red());
-        });
+    result.failure.into_iter().for_each(|failure_value| {
+        println!("\t Endpoint: {}", failure_value.endpoint.red());
+        println!("\t Error: {}", failure_value.payload.to_string().red());
+    });
 }
