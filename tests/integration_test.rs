@@ -7,12 +7,7 @@ use eth_checkpoint_lib::client::{
 
 use eth_checkpoint_lib::errors::AppError;
 
-
-use futures::StreamExt;
-use reqwest::{Response};
-
-
-
+use reqwest::Response;
 
 type Req = String;
 type BlockRootRes = String;
@@ -247,14 +242,14 @@ pub async fn test_only_failure_results() {
     let failure_result = result.failure;
     assert_eq!(
         &failure_result.get(0).unwrap().payload.to_string(),
-        &error0.to_string()
+        &format!("Error: {}", &error0.to_string())
     );
     assert_eq!(
         &failure_result.get(1).unwrap().payload.to_string(),
-        &error1.to_string()
+        &format!("Error: {}", &error1.to_string())
     );
     assert_eq!(
         &failure_result.get(2).unwrap().payload.to_string(),
-        &error2.to_string()
+        &format!("Error: {}", &error2.to_string())
     );
 }

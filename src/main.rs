@@ -1,5 +1,4 @@
 use clap::Parser;
-use eth_checkpoint_lib::args::Network::Mainnet;
 use eth_checkpoint_lib::args::{Cli, Network};
 use eth_checkpoint_lib::client::{CheckpointClient, EndpointsConfig};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
@@ -13,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // get values needed from the cli
     // 1. get the network
-    let network = match input.network.unwrap_or(Mainnet) {
+    let network = match input.network.unwrap_or(Network::Mainnet) {
         Network::Mainnet => "mainnet",
         Network::Goerli => "goerli",
         Network::Sepolia => "sepolia",
@@ -24,12 +23,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let endpoints_config: EndpointsConfig =
         serde_yaml::from_reader(std::fs::File::open(endpoints_path)?)?;
 
-    let endpoints = match endpoints_config.endpoints.get(&network.to_string()) {
-        Some(endpoints) => endpoints,
-        None => Err(AppError::GenericError(
-            "No endpoints found for the network".to_string(),
-        ))?,
-    };
+    let endpoints: &Vec<String> = endpoints_config
+        .endpoints
+        .get(&network.to_string())
+        .ok_or(AppError::NoEndpointsFound("Endpoint not found".to_string()))?;
 
     if endpoints.len() < 3 {
         Err(AppError::EndpointsBelowThreshold(
@@ -41,10 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state_id: StateId = if input.slot == "finalized" {
         StateId::Finalized
     } else {
-        match input.slot.parse::<u128>() {
-            Ok(value) => Slot(value),
-            Err(_) => StateId::Finalized,
-        }
+        Slot(input.slot.parse::<u128>()?)
     };
 
     // 3. get the response display level

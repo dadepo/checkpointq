@@ -2,20 +2,14 @@ use crate::args::Network;
 use crate::errors::AppError;
 use crate::processor::process_to_displayable_format;
 use async_trait::async_trait;
-use futures::future::{join_all};
+use futures::future::join_all;
 
-use reqwest::{Error, Response};
+use reqwest::{Response};
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
-
-impl From<reqwest::Error> for AppError {
-    fn from(value: Error) -> Self {
-        AppError::GenericError(value.to_string())
-    }
-}
 
 const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://checkpointz.pietjepuk.net",
