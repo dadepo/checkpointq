@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub enum AppError {
     GenericError(String),
     NetworkAndEndpoint(String),

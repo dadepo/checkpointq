@@ -1,5 +1,6 @@
 use clap::Parser;
 use eth_checkpoint_lib::args::{Cli, Network};
+use eth_checkpoint_lib::checkpoint_server;
 use eth_checkpoint_lib::client::{CheckpointClient, EndpointsConfig};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
 use eth_checkpoint_lib::errors::AppError;
@@ -35,10 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // 3. get the state id to get the checkpoint from. If none is given use the finalized
-    let state_id: StateId = if input.slot == "finalized" {
+    let state_id: StateId = if input.state_id == "finalized" {
         StateId::Finalized
     } else {
-        Slot(input.slot.parse::<u128>()?)
+        Slot(input.state_id.parse::<u128>()?)
     };
 
     // 3. get the response display level
@@ -47,5 +48,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints.to_vec());
     let result = checkpoint_client.fetch_finality_checkpoints().await;
     display_result(result, display_level);
+
+    // 4. whether to start the http server
+    let start_server = input.server;
+    if start_server {
+        let server = checkpoint_server::CheckPointServer::new(checkpoint_client, input.port);
+        server.serve().await;
+    }
     Ok(())
 }

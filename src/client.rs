@@ -4,7 +4,7 @@ use crate::processor::process_to_displayable_format;
 use async_trait::async_trait;
 use futures::future::join_all;
 
-use reqwest::{Response};
+use reqwest::Response;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -79,13 +79,13 @@ pub struct ResponsePayload {
     pub endpoint: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SuccessPayload {
     pub payload: FinalityCheckpointPayload,
     pub endpoint: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FailurePayload {
     pub payload: AppError,
     pub endpoint: String,
@@ -97,21 +97,21 @@ pub struct GroupedResult {
     pub failure: Vec<FailurePayload>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DisplayableResult {
     pub canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
     pub non_canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
     pub failure: Vec<FailurePayload>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CheckpointClient<C: HttpClient> {
     client: C,
     endpoints: Vec<String>,
     state_id: StateId,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StateId {
     Finalized,
     Slot(u128), // TODO is u128 to big?

@@ -18,10 +18,19 @@ pub struct Cli {
         help = "path to config file where endpoints for network are listed. default is ./endpoint.yaml"
     )]
     pub endpoints: Option<String>,
-    #[arg(short, long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
-    pub slot: String,
+    #[arg(short = 'i', long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
+    pub state_id: String,
     #[arg(short, long,  value_enum, default_value_t = DisplayLevel::Normal, help = "normal or verbose response")]
     pub display: DisplayLevel,
+    #[arg(
+        short,
+        long,
+        default_value_t = false,
+        help = "start an HTTP server for the checkpoint data"
+    )]
+    pub server: bool,
+    #[arg(short, long, default_value_t = 7070, help = "port for HTTP server")]
+    pub port: u16,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
