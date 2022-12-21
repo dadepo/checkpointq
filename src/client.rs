@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 
-const DEFAULT_MAINNET: [&'static str; 8] = [
+const DEFAULT_MAINNET: [&str; 8] = [
     "https://checkpointz.pietjepuk.net",
     "https://mainnet-checkpoint-sync.stakely.io",
     "https://beaconstate.ethstaker.cc",
@@ -22,7 +22,7 @@ const DEFAULT_MAINNET: [&'static str; 8] = [
     "https://mainnet-checkpoint-sync.attestant.io",
 ];
 
-const DEFAULT_GOERLI: [&'static str; 6] = [
+const DEFAULT_GOERLI: [&str; 6] = [
     "https://sync-goerli.beaconcha.in",
     "https://goerli.beaconstate.info",
     "https://prater-checkpoint-sync.stakely.io",
@@ -30,7 +30,7 @@ const DEFAULT_GOERLI: [&'static str; 6] = [
     "https://goerli-sync.invis.tools",
     "https://goerli.checkpoint-sync.ethdevops.io",
 ];
-const DEFAULT_SEPOLIA: [&'static str; 2] = [
+const DEFAULT_SEPOLIA: [&str; 2] = [
     "https://sepolia.beaconstate.info",
     "https://sepolia.checkpoint-sync.ethdevops.io",
 ];
@@ -161,7 +161,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                 let path = format!(
                     "{}/eth/v1/beacon/states/{}/finality_checkpoints",
                     endpoint.clone(),
-                    self.state_id.to_string()
+                    self.state_id
                 );
                 let result = self.client.send_request(path);
                 match result.await {

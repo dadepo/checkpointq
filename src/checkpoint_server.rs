@@ -16,7 +16,7 @@ impl CheckPointServer {
         }
     }
 
-    pub async fn serve(self) -> () {
+    pub async fn serve(self) {
         let port = self.port;
         let app = Router::new().route("/finalized", axum::routing::get(move || self.finalized()));
 

@@ -71,30 +71,17 @@ impl HttpClient for MockClient {
             ..Clone::clone(&self.base)
         };
         if !success_responses.is_empty() {
-            payload.data.finalized.root = success_responses
-                .into_iter()
-                .nth(0)
-                .unwrap()
-                .ok()
-                .unwrap()
-                .to_string();
+            payload.data.finalized.root =
+                success_responses.into_iter().next().unwrap().ok().unwrap();
             Ok(Response::from(http::response::Response::new(
                 serde_json::to_string(&payload).unwrap(),
             )))
+        } else if !err_responses.is_empty() {
+            Err(AppError::GenericError(
+                err_responses.into_iter().next().unwrap().err().unwrap(),
+            ))
         } else {
-            if !err_responses.is_empty() {
-                Err(AppError::GenericError(
-                    err_responses
-                        .into_iter()
-                        .nth(0)
-                        .unwrap()
-                        .err()
-                        .unwrap()
-                        .to_string(),
-                ))
-            } else {
-                Err(AppError::GenericError("mock error".to_string()))
-            }
+            Err(AppError::GenericError("mock error".to_string()))
         }
     }
 }
@@ -183,7 +170,7 @@ pub async fn test_only_non_canonical_results() {
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
     let result = checkpoint_client.fetch_finality_checkpoints().await;
     // assert only non canonical results are returned
-    assert!(!result.non_canonical.is_none());
+    assert!(result.non_canonical.is_some());
     assert!(result.canonical.is_none());
     assert_eq!(result.failure.len(), 0);
     // assert the correct hash is returned
