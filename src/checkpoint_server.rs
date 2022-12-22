@@ -1,14 +1,14 @@
 use crate::client::CheckpointClient;
-use axum::{http::StatusCode, response::IntoResponse, Json, Router};
-use std::net::SocketAddr;
+use axum::{http::StatusCode, response::IntoResponse, Json, Router, extract::State};
+use std::{net::SocketAddr, sync::Arc};
 
-#[derive(Clone, Debug)]
-pub struct CheckPointServer {
+#[derive(Debug)]
+pub struct CheckPointMiddleware {
     checkpoint_client: CheckpointClient<reqwest::Client>,
     port: u16,
 }
 
-impl CheckPointServer {
+impl CheckPointMiddleware {
     pub fn new(checkpoint_client: CheckpointClient<reqwest::Client>, port: u16) -> Self {
         Self {
             checkpoint_client,
@@ -18,7 +18,9 @@ impl CheckPointServer {
 
     pub async fn serve(self) {
         let port = self.port;
-        let app = Router::new().route("/finalized", axum::routing::get(move || self.finalized()));
+        let app = Router::new()
+            .route("/finalized", axum::routing::get(finalized))
+            .with_state(Arc::new(self));
 
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
         axum::Server::bind(&addr)
@@ -26,9 +28,9 @@ impl CheckPointServer {
             .await
             .unwrap();
     }
+}
 
-    async fn finalized(self) -> impl IntoResponse {
-        let result = self.checkpoint_client.fetch_finality_checkpoints().await;
-        (StatusCode::OK, Json(result))
-    }
+async fn finalized(State(middle_ware): State<Arc<CheckPointMiddleware>>) -> impl IntoResponse {
+    let result = middle_ware.checkpoint_client.fetch_finality_checkpoints().await;
+    (StatusCode::OK, Json(result))
 }
