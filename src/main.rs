@@ -52,6 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 4. whether to start the http server
     let start_server = input.server;
     if start_server {
+        println!("Starting server on port {}", input.port);
         let server = checkpoint_server::CheckPointMiddleware::new(checkpoint_client, input.port);
         server.serve().await;
     }
