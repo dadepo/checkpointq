@@ -91,7 +91,7 @@ fn normal_result(result: DisplayableResult) {
         println!(
             "{}:\n \t{}",
             "Block root".blue(),
-            canonical_result.keys().next().unwrap().green().bold()
+            canonical_result.keys().next().unwrap_or(&"block root not found".to_string()).green().bold()
         )
     };
 

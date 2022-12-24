@@ -56,27 +56,25 @@ async fn finalized(
         .checkpoint_client
         .fetch_finality_checkpoints()
         .await;
-    let display_level = query_params.display_level.unwrap_or(DisplayLevel::Normal);
 
+    let not_found_msg = "Finalized block root not found";
     let block_root = match displayable_result.canonical.as_ref() {
-        Some(canonical) => canonical.keys().next().unwrap().to_string(),
-        None => "Finalized block root not found".to_string(),
+        Some(canonical) => canonical.keys().next().map(|s| s.to_string()).unwrap_or(not_found_msg.to_string()),
+        None => not_found_msg.to_string(),
     };
 
-    match display_level {
-        DisplayLevel::Normal => (
-            StatusCode::OK,
-            Json(ApiResponse {
-                block_root: block_root.to_string(),
-                payload: None,
-            }),
-        ),
-        DisplayLevel::Verbose => (
-            StatusCode::OK,
-            Json(ApiResponse {
-                block_root: block_root.to_string(),
-                payload: Some(displayable_result),
-            }),
-        ),
-    }
+    let display_level = query_params.display_level.unwrap_or(DisplayLevel::Normal);
+
+    let payload = if display_level == DisplayLevel::Verbose {
+        Some(displayable_result)
+    } else {
+        None
+    };
+
+    let api_response = ApiResponse {
+        block_root: block_root.to_string(),
+        payload,
+    };
+
+    (StatusCode::OK, Json(api_response))
 }

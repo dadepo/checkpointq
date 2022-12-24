@@ -40,7 +40,7 @@ pub enum Network {
     Sepolia,
 }
 
-#[derive(ValueEnum, Debug, Clone, Deserialize, Serialize)]
+#[derive(ValueEnum, Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum DisplayLevel {
     Normal,
