@@ -1,5 +1,5 @@
 use clap::{Parser, ValueEnum};
-
+use serde::{Deserialize, Serialize};
 /**
 TODO
 1. Allow exe -e url1 url2
@@ -40,7 +40,8 @@ pub enum Network {
     Sepolia,
 }
 
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum DisplayLevel {
     Normal,
     Verbose,
