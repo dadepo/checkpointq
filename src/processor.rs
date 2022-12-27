@@ -1,4 +1,3 @@
-use crate::args::DisplayLevel;
 use crate::client::{
     DisplayableResult, FailurePayload, GroupedResult, ResponsePayload, SuccessPayload,
 };
@@ -79,19 +78,28 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
     }
 }
 
-pub fn display_result(result: DisplayableResult, display_level: DisplayLevel) {
-    match display_level {
-        DisplayLevel::Normal => normal_result(result),
-        DisplayLevel::Verbose => normal_result(result),
+pub fn display_result(result: DisplayableResult, is_verbose: bool) {
+    if is_verbose {
+        verbose_result(result)
+    } else {
+        normal_result(result);
     }
 }
 
+fn verbose_result(result: DisplayableResult) {
+    println!("Verbose result");
+}
 fn normal_result(result: DisplayableResult) {
     if let Some(canonical_result) = result.canonical {
         println!(
             "{}:\n \t{}",
             "Block root".blue(),
-            canonical_result.keys().next().unwrap_or(&"block root not found".to_string()).green().bold()
+            canonical_result
+                .keys()
+                .next()
+                .unwrap_or(&"block root not found".to_string())
+                .green()
+                .bold()
         )
     };
 

@@ -20,8 +20,13 @@ pub struct Cli {
     pub endpoints: Option<String>,
     #[arg(short = 'i', long,  default_value_t = String::from("finalized"), help = "provide the slot number or finalized")]
     pub state_id: String,
-    #[arg(short, long,  value_enum, default_value_t = DisplayLevel::Normal, help = "normal or verbose response")]
-    pub display: DisplayLevel,
+    #[arg(
+        short,
+        long,
+        default_value_t = false,
+        help = "display verbose result or not"
+    )]
+    pub verbose: bool,
     #[arg(
         short,
         long,
@@ -38,11 +43,4 @@ pub enum Network {
     Mainnet,
     Goerli,
     Sepolia,
-}
-
-#[derive(ValueEnum, Debug, Clone, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub enum DisplayLevel {
-    Normal,
-    Verbose,
 }

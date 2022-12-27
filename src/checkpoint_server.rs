@@ -1,4 +1,3 @@
-use crate::args::DisplayLevel;
 use crate::client::{CheckpointClient, DisplayableResult};
 use axum::extract::Query;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json, Router};
@@ -8,7 +7,8 @@ use std::{net::SocketAddr, sync::Arc};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct QueryParams {
-    pub display_level: Option<DisplayLevel>,
+    #[serde(default)]
+    pub verbose: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,13 +59,15 @@ async fn finalized(
 
     let not_found_msg = "Finalized block root not found";
     let block_root = match displayable_result.canonical.as_ref() {
-        Some(canonical) => canonical.keys().next().map(|s| s.to_string()).unwrap_or(not_found_msg.to_string()),
+        Some(canonical) => canonical
+            .keys()
+            .next()
+            .map(|s| s.to_string())
+            .unwrap_or(not_found_msg.to_string()),
         None => not_found_msg.to_string(),
     };
 
-    let display_level = query_params.display_level.unwrap_or(DisplayLevel::Normal);
-
-    let payload = if display_level == DisplayLevel::Verbose {
+    let payload = if query_params.verbose {
         Some(displayable_result)
     } else {
         None

@@ -43,11 +43,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // 3. get the response display level
-    let display_level = input.display;
+    let is_verbose = input.verbose;
 
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints.to_vec());
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    display_result(result, display_level);
+    display_result(result, is_verbose);
 
     // 4. whether to start the http server
     let start_server = input.server;
