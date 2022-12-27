@@ -4,7 +4,7 @@ use eth_checkpoint_lib::checkpoint_server;
 use eth_checkpoint_lib::client::{CheckpointClient, EndpointsConfig};
 use eth_checkpoint_lib::client::{StateId, StateId::Slot};
 use eth_checkpoint_lib::errors::AppError;
-use eth_checkpoint_lib::processor::display_result;
+use eth_checkpoint_lib::processor::print_result;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let checkpoint_client = CheckpointClient::new(client, state_id, endpoints.to_vec());
     let result = checkpoint_client.fetch_finality_checkpoints().await;
-    display_result(result, is_verbose);
+    print_result(result, is_verbose);
 
     // 4. whether to start the http server
     let start_server = input.server;

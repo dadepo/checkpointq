@@ -1,5 +1,5 @@
 use clap::{Parser, ValueEnum};
-use serde::{Deserialize, Serialize};
+
 /**
 TODO
 1. Allow exe -e url1 url2

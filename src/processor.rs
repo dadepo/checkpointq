@@ -78,18 +78,7 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
     }
 }
 
-pub fn display_result(result: DisplayableResult, is_verbose: bool) {
-    if is_verbose {
-        verbose_result(result)
-    } else {
-        normal_result(result);
-    }
-}
-
-fn verbose_result(result: DisplayableResult) {
-    println!("Verbose result");
-}
-fn normal_result(result: DisplayableResult) {
+pub fn print_result(result: DisplayableResult, is_verbose: bool) {
     if let Some(canonical_result) = result.canonical {
         println!(
             "{}:\n \t{}",
@@ -100,15 +89,35 @@ fn normal_result(result: DisplayableResult) {
                 .unwrap_or(&"block root not found".to_string())
                 .green()
                 .bold()
-        )
+        );
+
+        if is_verbose {
+            println!(
+                "{}:\n \t{}",
+                "Details".blue(),
+                serde_json::to_string_pretty(&canonical_result)
+                    .unwrap_or("displaying verbose failed".to_string())
+                    .green()
+            );
+        }
     };
 
     if let Some(non_canonical_result) = result.non_canonical {
         println!("{}", "Conflicting:".yellow().bold());
-        for (key, values) in non_canonical_result {
-            println!("\t Checkpoint: {}", key.yellow());
-            for value in values {
-                println!("\t\t {}", value.endpoint.yellow());
+        if is_verbose {
+            println!(
+                "{}:\n \t{}",
+                "Details".yellow(),
+                serde_json::to_string_pretty(&non_canonical_result)
+                    .unwrap_or("displaying verbose failed".to_string())
+                    .yellow()
+            );
+        } else {
+            for (key, values) in &non_canonical_result {
+                println!("\t Checkpoint: {}", key.yellow());
+                for value in values {
+                    println!("\t\t {}", value.endpoint.yellow());
+                }
             }
         }
     }
@@ -116,8 +125,18 @@ fn normal_result(result: DisplayableResult) {
     if !result.failure.is_empty() {
         println!("{}", "Errors:".red().bold());
     }
-    result.failure.into_iter().for_each(|failure_value| {
-        println!("\t Endpoint: {}", failure_value.endpoint.red());
-        println!("\t Error: {}", failure_value.payload.to_string().red());
-    });
+    if is_verbose {
+        println!(
+            "{}:\n \t{}",
+            "Details".red(),
+            serde_json::to_string_pretty(&result.failure)
+                .unwrap_or("displaying error failed".to_string())
+                .red()
+        );
+    } else {
+        result.failure.into_iter().for_each(|failure_value| {
+            println!("\t Endpoint: {}", failure_value.endpoint.red());
+            println!("\t Error: {}", failure_value.payload.to_string().red());
+        });
+    }
 }
