@@ -10,7 +10,7 @@ TODO
 #[derive(Parser)]
 #[command(author, version, about, long_about)]
 pub struct Cli {
-    #[arg(short, long, value_enum)]
+    #[arg(long, value_enum)]
     pub network: Option<Network>,
     #[arg(
         short,
