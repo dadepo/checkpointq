@@ -1,14 +1,14 @@
 # CheckpointQ
 
-CheckpointQ, stands Checkpoint Quorum. It is a tool for establishing quorum over finalized checkpoints across multiple 
-ethereum checkpoint providers.
+CheckpointQ, where the Q stands for quorum, is a tool for establishing quorum over finalized checkpoints across multiple
+Ethereum checkpoint providers.
 
-It makes request to multiple checkpoint providers and only returns the finalized checkpoint block root if 
-more than 2/3 of the configured providers return the same checkpoint block root.      
+It makes requests to multiple checkpoint providers and only returns the finalized checkpoint block root if
+more than 2/3 of the configured providers return the same checkpoint block root.
 
 ## Installation
 
-For now CheckpointQ requires to be built from source using the Rust toolchain.
+For now, CheckpointQ requires to be built from source using the Rust toolchain.
 
 - Install Rust. See [here](https://www.rust-lang.org/tools/install) for details.
 - Clone the repository.
