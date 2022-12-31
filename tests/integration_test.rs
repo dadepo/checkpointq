@@ -1,11 +1,11 @@
 extern crate core;
 
 use async_trait::async_trait;
-use eth_checkpoint_lib::client::{
+use checkpointq_lib::client::{
     BlockInfo, CheckpointClient, Data, FinalityCheckpointPayload, HttpClient, StateId,
 };
 
-use eth_checkpoint_lib::errors::AppError;
+use checkpointq_lib::errors::AppError;
 
 use reqwest::Response;
 

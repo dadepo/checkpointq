@@ -1,10 +1,10 @@
 use clap::Parser;
-use eth_checkpoint_lib::args::{Cli, Network};
-use eth_checkpoint_lib::checkpoint_server;
-use eth_checkpoint_lib::client::{CheckpointClient, EndpointsConfig};
-use eth_checkpoint_lib::client::{StateId, StateId::Slot};
-use eth_checkpoint_lib::errors::AppError;
-use eth_checkpoint_lib::processor::print_result;
+use checkpointq_lib::args::{Cli, Network};
+use checkpointq_lib::checkpoint_server;
+use checkpointq_lib::client::{CheckpointClient, EndpointsConfig};
+use checkpointq_lib::client::{StateId, StateId::Slot};
+use checkpointq_lib::errors::AppError;
+use checkpointq_lib::processor::print_result;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

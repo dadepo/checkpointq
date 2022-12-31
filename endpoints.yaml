@@ -1,0 +1,24 @@
+endpoints:
+  mainnet:
+      - https://mainnet-checkpoint-sync.attestant.io
+      - https://beaconstate.ethstaker.cc
+      - https://beaconstate.info
+      - https://mainnet-checkpoint-sync.stakely.io
+      - https://checkpointz.pietjepuk.net
+      - https://sync.invis.tools
+      - https://sync-mainnet.beaconcha.in
+      - https://mainnet.checkpoint.sigp.io
+      - https://beaconstate-mainnet.chainsafe.io
+  goerli:
+      - https://sync-goerli.beaconcha.in
+      - https://goerli-sync.invis.tools
+      - https://goerli.beaconstate.ethstaker.cc
+      - https://prater-checkpoint-sync.stakely.io
+      - https://beaconstate-goerli.chainsafe.io
+      - https://goerli.checkpoint-sync.ethdevops.io
+      - https://goerli.beaconstate.info
+      - https://prater.checkpoint.sigp.io
+  sepolia:
+      - https://beaconstate-sepolia.chainsafe.io
+      - https://sepolia.beaconstate.info
+      - https://sepolia.checkpoint-sync.ethdevops.io

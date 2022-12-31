@@ -1,7 +1,7 @@
 [package]
-name = "eth_checkpoint"
+name = "checkpointq"
 authors = ["Dade <dadepo@gmail.com>"]
-description = "Beacon Chain Checkpoints Retriever"
+description = "Tool for establishing checkpoint quorum for finalized checkpoints across multiple checkpoint providers"
 version = "0.1.0"
 edition = "2021"
 
@@ -27,9 +27,9 @@ http = "0.2.8"
 panic = 'abort'
 
 [lib]
-name = "eth_checkpoint_lib"
+name = "checkpointq_lib"
 path = "src/lib.rs"
 
 [[bin]]
-name = "eth_checkpoint_bin"
+name = "checkpointq"
 path = "src/main.rs"

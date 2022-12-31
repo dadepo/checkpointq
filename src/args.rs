@@ -1,12 +1,5 @@
 use clap::{Parser, ValueEnum};
 
-/**
-TODO
-1. Allow exe -e url1 url2
-2. make endpoint compulsory only if network is not specified.
-3. move configuration of default to file - also include passing endpoints as file
-*/
-
 #[derive(Parser)]
 #[command(author, version, about, long_about)]
 pub struct Cli {
