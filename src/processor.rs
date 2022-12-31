@@ -124,19 +124,19 @@ pub fn print_result(result: DisplayableResult, is_verbose: bool) {
 
     if !result.failure.is_empty() {
         println!("{}", "Errors:".red().bold());
-    }
-    if is_verbose {
-        println!(
-            "{}:\n \t{}",
-            "Details".red(),
-            serde_json::to_string_pretty(&result.failure)
-                .unwrap_or("displaying error failed".to_string())
-                .red()
-        );
-    } else {
-        result.failure.into_iter().for_each(|failure_value| {
-            println!("\t Endpoint: {}", failure_value.endpoint.red());
-            println!("\t Error: {}", failure_value.payload.to_string().red());
-        });
+        if is_verbose {
+            println!(
+                "{}:\n \t{}",
+                "Details".red(),
+                serde_json::to_string_pretty(&result.failure)
+                    .unwrap_or("displaying error failed".to_string())
+                    .red()
+            );
+        } else {
+            result.failure.into_iter().for_each(|failure_value| {
+                println!("\t Endpoint: {}", failure_value.endpoint.red());
+                println!("\t Error: {}", failure_value.payload.to_string().red());
+            });
+        }
     }
 }
