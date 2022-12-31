@@ -46,7 +46,7 @@ pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> 
         } else {
             // more than one results, pick one with values more than 2/3
             let total_value = grouped_result.success.values().len() as f64;
-            let threshold = 2f64 / 3f64 * total_value;
+            let threshold = (2f64 / 3f64 * total_value).floor();
             let (passed_threshold, below_threshold): (
                 HashMap<String, Vec<SuccessPayload>>,
                 HashMap<String, Vec<SuccessPayload>>,

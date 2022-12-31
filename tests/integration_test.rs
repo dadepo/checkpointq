@@ -240,3 +240,59 @@ pub async fn test_only_failure_results() {
         &format!("Error: {}", &error2.to_string())
     );
 }
+
+#[tokio::test]
+pub async fn test_results_but_no_canonical() {
+    // test case where there are results but no quorom to make it canonical
+    // hash1 has no quorom
+    let expected_block_root1 = "Hash1";
+    let expected_block_root2 = "Hash1";
+    let expected_block_root3 = "Hash3";
+    let expected_block_root4 = "Hash4";
+    let expected_block_root5 = "Hash5";
+
+
+    let first_mock = (
+        "http://www.good1.com".to_string(),
+        Ok(expected_block_root1.to_string()),
+    );
+    let second_mock = (
+        "http://www.good2.com".to_string(),
+        Ok(expected_block_root2.to_string()),
+    );
+    let third_mock = (
+        "http://www.good3.com".to_string(),
+        Ok(expected_block_root3.to_string()),
+    );
+    let fourth_mock = (
+        "http://www.good4.com".to_string(),
+        Ok(expected_block_root4.to_string()),
+    );
+    let fifth_mock = (
+        "http://www.good5.com".to_string(),
+        Ok(expected_block_root5.to_string()),
+    );
+    let client = MockClient::new(vec![
+        first_mock.clone(),
+        second_mock.clone(),
+        third_mock.clone(),
+        fourth_mock.clone(),
+        fifth_mock.clone(),
+    ]);
+    let endpoints = vec![
+        first_mock.0.clone(),
+        second_mock.0.clone(),
+        third_mock.0.clone(),
+        fourth_mock.0.clone(),
+        fifth_mock.0.clone(),
+    ];
+
+    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
+    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    // assert only non canonical results are returned
+    assert!(result.canonical.is_none());
+    assert_eq!(result.failure.len(), 0);
+    let non_canonical_map = result.non_canonical.unwrap();
+    assert_eq!(non_canonical_map.keys().len(), 4);
+    assert_eq!(non_canonical_map.values().flatten().collect::<Vec<_>>().len(), 5);
+}
