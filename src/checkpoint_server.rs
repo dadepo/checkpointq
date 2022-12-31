@@ -74,7 +74,7 @@ async fn finalized(
     };
 
     let api_response = ApiResponse {
-        block_root: block_root.to_string(),
+        block_root,
         payload,
     };
 
