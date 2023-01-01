@@ -31,7 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if endpoints.len() < 3 {
         Err(AppError::EndpointsBelowThreshold(
-            "Endpoints must be greater than 3".to_string(),
+            "Minimum of 3 endpoints required".to_string(),
         ))?
     }
 
