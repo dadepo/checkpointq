@@ -11,21 +11,21 @@ pub enum AppError {
 
 impl fmt::Display for AppError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            AppError::GenericError(e) => write!(f, "Error: {e}"),
-            AppError::NetworkAndEndpoint(e) => write!(f, "Error: {e}"),
-            AppError::EndpointsBelowThreshold(e) => write!(f, "Error: {e}"),
-            AppError::NoEndpointsFound(e) => write!(f, "Error: {e}"),
-        }
+        write!(f, "Error: {}", match self {
+            AppError::GenericError(e) |
+            AppError::NetworkAndEndpoint(e) |
+            AppError::EndpointsBelowThreshold(e) |
+            AppError::NoEndpointsFound(e) => e,
+        })
     }
 }
 
 impl std::error::Error for AppError {
     fn description(&self) -> &str {
         match self {
-            AppError::GenericError(s) => s,
-            AppError::NetworkAndEndpoint(s) => s,
-            AppError::EndpointsBelowThreshold(s) => s,
+            AppError::GenericError(s) |
+            AppError::NetworkAndEndpoint(s) |
+            AppError::EndpointsBelowThreshold(s) |
             AppError::NoEndpointsFound(s) => s,
         }
     }
