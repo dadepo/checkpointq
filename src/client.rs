@@ -11,38 +11,6 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 
-const DEFAULT_MAINNET: [&str; 8] = [
-    "https://checkpointz.pietjepuk.net",
-    "https://mainnet-checkpoint-sync.stakely.io",
-    "https://beaconstate.ethstaker.cc",
-    "https://beaconstate.info",
-    "https://mainnet.checkpoint.sigp.io",
-    "https://sync-mainnet.beaconcha.in",
-    "https://sync.invis.tools",
-    "https://mainnet-checkpoint-sync.attestant.io",
-];
-
-const DEFAULT_GOERLI: [&str; 6] = [
-    "https://sync-goerli.beaconcha.in",
-    "https://goerli.beaconstate.info",
-    "https://prater-checkpoint-sync.stakely.io",
-    "https://goerli.beaconstate.ethstaker.cc",
-    "https://goerli-sync.invis.tools",
-    "https://goerli.checkpoint-sync.ethdevops.io",
-];
-const DEFAULT_SEPOLIA: [&str; 2] = [
-    "https://sepolia.beaconstate.info",
-    "https://sepolia.checkpoint-sync.ethdevops.io",
-];
-
-pub fn default_network_endpoints(network: Network) -> Vec<String> {
-    match network {
-        Network::Mainnet => DEFAULT_MAINNET.iter().map(|s| s.to_string()).collect(),
-        Network::Goerli => DEFAULT_GOERLI.iter().map(|s| s.to_string()).collect(),
-        Network::Sepolia => DEFAULT_SEPOLIA.iter().map(|s| s.to_string()).collect(),
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SyncingRes {
     head_slot: String,
