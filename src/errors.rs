@@ -1,32 +1,13 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use thiserror::Error;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Error, Deserialize, Serialize)]
 pub enum AppError {
+    #[error("Error: {0}")]
     GenericError(String),
-    NetworkAndEndpoint(String),
+    #[error("Error: {0}")]
     EndpointsBelowThreshold(String),
+    #[error("Error: {0}")]
     NoEndpointsFound(String),
-}
-
-impl fmt::Display for AppError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error: {}", match self {
-            AppError::GenericError(e) |
-            AppError::NetworkAndEndpoint(e) |
-            AppError::EndpointsBelowThreshold(e) |
-            AppError::NoEndpointsFound(e) => e,
-        })
-    }
-}
-
-impl std::error::Error for AppError {
-    fn description(&self) -> &str {
-        match self {
-            AppError::GenericError(s) |
-            AppError::NetworkAndEndpoint(s) |
-            AppError::EndpointsBelowThreshold(s) |
-            AppError::NoEndpointsFound(s) => s,
-        }
-    }
 }

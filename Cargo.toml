@@ -19,6 +19,7 @@ colored = "2.0.0"
 async-trait = "0.1.59"
 axum = "0.6.1"
 axum-macros = "0.3.0"
+thiserror = "1.0.38"
 
 [dev-dependencies]
 http = "0.2.8"
