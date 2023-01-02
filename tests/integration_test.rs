@@ -2,7 +2,7 @@ extern crate core;
 
 use async_trait::async_trait;
 use checkpointq_lib::client::{
-    BlockInfo, CheckpointClient, Data, FinalityCheckpointPayload, HttpClient, StateId,
+    BlockInfo, CheckpointClient, Data, HttpClient, StateId, SuccessEndpointPayload,
 };
 
 use checkpointq_lib::errors::AppError;
@@ -14,13 +14,13 @@ type BlockRootRes = String;
 type ErrorRes = String;
 
 struct MockClient {
-    base: FinalityCheckpointPayload,
+    base: SuccessEndpointPayload,
     paths: Vec<(Req, Result<BlockRootRes, ErrorRes>)>,
 }
 impl MockClient {
     pub fn new(paths: Vec<(Req, Result<BlockRootRes, ErrorRes>)>) -> Self {
         Self {
-            base: FinalityCheckpointPayload {
+            base: SuccessEndpointPayload {
                 data: Data {
                     finalized: BlockInfo {
                         epoch: "".to_string(),
@@ -67,7 +67,7 @@ impl HttpClient for MockClient {
             .map(|(_, res)| res)
             .collect();
 
-        let mut payload = FinalityCheckpointPayload {
+        let mut payload = SuccessEndpointPayload {
             ..Clone::clone(&self.base)
         };
         if !success_responses.is_empty() {
@@ -251,7 +251,6 @@ pub async fn test_results_but_no_canonical() {
     let expected_block_root4 = "Hash4";
     let expected_block_root5 = "Hash5";
 
-
     let first_mock = (
         "http://www.good1.com".to_string(),
         Ok(expected_block_root1.to_string()),
@@ -294,5 +293,11 @@ pub async fn test_results_but_no_canonical() {
     assert_eq!(result.failure.len(), 0);
     let non_canonical_map = result.non_canonical.unwrap();
     assert_eq!(non_canonical_map.keys().len(), 4);
-    assert_eq!(non_canonical_map.values().flatten().collect::<Vec<_>>().len(), 5);
+    assert_eq!(
+        non_canonical_map
+            .values()
+            .flatten()
+            .count(),
+        5
+    );
 }

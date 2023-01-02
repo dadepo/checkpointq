@@ -1,4 +1,5 @@
-use crate::client::{CheckpointClient, DisplayableResult};
+use crate::client::CheckpointClient;
+use crate::processor::DisplayableResult;
 use axum::extract::Query;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json, Router};
 use axum_macros::debug_handler;

@@ -1,10 +1,35 @@
-use crate::client::{
-    DisplayableResult, FailurePayload, GroupedResult, ResponsePayload, SuccessPayload,
-};
+use crate::client::{ResponsePayloadWithEndpointInfo, SuccessEndpointPayload};
+use crate::errors::AppError;
 use colored::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResult {
+#[derive(Debug)]
+struct GroupedResult {
+    success: HashMap<String, Vec<SuccessPayload>>,
+    failure: Vec<FailurePayload>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DisplayableResult {
+    pub canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
+    pub non_canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
+    pub failure: Vec<FailurePayload>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SuccessPayload {
+    pub payload: SuccessEndpointPayload,
+    pub endpoint: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FailurePayload {
+    pub payload: AppError,
+    pub endpoint: String,
+}
+
+fn group_success_failure(response_payload: Vec<ResponsePayloadWithEndpointInfo>) -> GroupedResult {
     let (successes, failures): (Vec<SuccessPayload>, Vec<FailurePayload>) = response_payload
         .into_iter()
         .fold((vec![], vec![]), |mut acc, result| {
@@ -35,7 +60,13 @@ fn group_success_failure(response_payload: Vec<ResponsePayload>) -> GroupedResul
     }
 }
 
-pub fn process_to_displayable_format(response_payload: Vec<ResponsePayload>) -> DisplayableResult {
+pub fn process_to_displayable_format(
+    response_payload: Vec<ResponsePayloadWithEndpointInfo>,
+) -> DisplayableResult {
+    // groups the results into
+    // failures
+    // success
+    //   - success grouped by their block_root hash
     let grouped_result = group_success_failure(response_payload);
     let mut canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;
     let mut non_canonical: Option<HashMap<String, Vec<SuccessPayload>>> = None;

@@ -1,6 +1,5 @@
-use crate::args::Network;
 use crate::errors::AppError;
-use crate::processor::process_to_displayable_format;
+use crate::processor::{process_to_displayable_format, DisplayableResult};
 use async_trait::async_trait;
 use futures::future::join_all;
 
@@ -11,16 +10,15 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SyncingRes {
-    head_slot: String,
-    sync_distance: String,
-    is_syncing: bool,
+#[derive(Debug)]
+pub struct ResponsePayloadWithEndpointInfo {
+    pub payload: Result<SuccessEndpointPayload, AppError>,
+    pub endpoint: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct SyncingResGetResponse {
-    data: SyncingRes,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SuccessEndpointPayload {
+    pub data: Data,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -34,42 +32,6 @@ pub struct Data {
     pub finalized: BlockInfo,
     pub current_justified: BlockInfo,
     pub previous_justified: BlockInfo,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct FinalityCheckpointPayload {
-    pub data: Data,
-}
-
-#[derive(Debug)]
-pub struct ResponsePayload {
-    pub payload: Result<FinalityCheckpointPayload, AppError>,
-    pub endpoint: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SuccessPayload {
-    pub payload: FinalityCheckpointPayload,
-    pub endpoint: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FailurePayload {
-    pub payload: AppError,
-    pub endpoint: String,
-}
-
-#[derive(Debug)]
-pub struct GroupedResult {
-    pub success: HashMap<String, Vec<SuccessPayload>>,
-    pub failure: Vec<FailurePayload>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DisplayableResult {
-    pub canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
-    pub non_canonical: Option<HashMap<String, Vec<SuccessPayload>>>,
-    pub failure: Vec<FailurePayload>,
 }
 
 #[derive(Debug, Clone)]
@@ -135,14 +97,14 @@ impl<C: HttpClient> CheckpointClient<C> {
                 match result.await {
                     // TODO Possible not to use match?
                     // Catch error before parsing to json so that original error message is used upstream
-                    Ok(res) => ResponsePayload {
+                    Ok(res) => ResponsePayloadWithEndpointInfo {
                         payload: res
-                            .json::<FinalityCheckpointPayload>()
+                            .json::<SuccessEndpointPayload>()
                             .await
                             .map_err(|e| AppError::GenericError(e.to_string())),
                         endpoint: endpoint.clone(),
                     },
-                    Err(e) => ResponsePayload {
+                    Err(e) => ResponsePayloadWithEndpointInfo {
                         payload: Err(e),
                         endpoint: endpoint.clone(),
                     },
