@@ -72,7 +72,7 @@ impl HttpClient for reqwest::Client {
         self.get(path)
             .send()
             .await
-            .map_err(|e| AppError::GenericError(e.to_string()))
+            .map_err(|e| AppError::EndpointResponseError(e.to_string()))
     }
 }
 
@@ -101,7 +101,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                         payload: res
                             .json::<SuccessEndpointPayload>()
                             .await
-                            .map_err(|e| AppError::GenericError(e.to_string())),
+                            .map_err(|e| AppError::EndpointResponseError(e.to_string())),
                         endpoint: endpoint.clone(),
                     },
                     Err(e) => ResponsePayloadWithEndpointInfo {

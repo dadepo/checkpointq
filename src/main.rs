@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let endpoints: &Vec<String> = endpoints_config
         .endpoints
         .get(&network.to_string())
-        .ok_or(AppError::NoEndpointsFound("Endpoint not found".to_string()))?;
+        .ok_or(AppError::EndpointsNotFound("Endpoint not found".to_string()))?;
 
     if endpoints.len() < 3 {
         Err(AppError::EndpointsBelowThreshold(

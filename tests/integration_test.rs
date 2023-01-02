@@ -77,11 +77,11 @@ impl HttpClient for MockClient {
                 serde_json::to_string(&payload).unwrap(),
             )))
         } else if !err_responses.is_empty() {
-            Err(AppError::GenericError(
+            Err(AppError::EndpointResponseError(
                 err_responses.into_iter().next().unwrap().err().unwrap(),
             ))
         } else {
-            Err(AppError::GenericError("mock error".to_string()))
+            Err(AppError::EndpointResponseError("mock error".to_string()))
         }
     }
 }
