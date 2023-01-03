@@ -21,4 +21,4 @@ endpoints:
   sepolia:
       - https://beaconstate-sepolia.chainsafe.io
       - https://sepolia.beaconstate.info
-      - https://sepolia.checkpoint-sync.ethdevops.io
+#      - https://sepolia.checkpoint-sync.ethdevops.io

@@ -8,7 +8,7 @@ use std::path::PathBuf;
 pub struct Cli {
     #[command(flatten)]
     pub shared: SharedCommands,
-    #[arg(long,short,value_enum)]
+    #[arg(long, short, value_enum)]
     pub network: Option<Network>,
     #[arg(
         short,
@@ -31,7 +31,12 @@ pub enum SubCommands {
 pub struct ServerCommands {
     #[command(flatten)]
     pub shared: SharedCommands,
-    #[arg(short, long, default_value_t = 7070, help = "Port for HTTP server. Defaults to 7070")]
+    #[arg(
+        short,
+        long,
+        default_value_t = 7070,
+        help = "Port for HTTP server. Defaults to 7070"
+    )]
     pub port: u16,
 }
 
