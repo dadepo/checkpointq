@@ -28,7 +28,7 @@ Tool for establishing checkpoint quorum for finalized checkpoints across multipl
 Usage: checkpointq [OPTIONS] [COMMAND]
 
 Commands:
-  serve  Run in server mode
+  server  Run in server mode
   help   Print this message or the help of the given subcommand(s)
 
 Options:
@@ -87,7 +87,7 @@ The `server` mode is available by running the  `server` command:
 For example:
 
 ```bash
-➜  checkpointq git:(master) ✗ ./target/release/checkpointq serve --endpoints ./endpoints.yaml
+➜  checkpointq git:(master) ✗ ./target/release/checkpointq server --endpoints ./endpoints.yaml
 ```
 
 Default port is `7070`. Requests to the server can be made using the `/:network/finalized` endpoint for example:
