@@ -29,9 +29,9 @@ Commands:
   help   Print this message or the help of the given subcommand(s)
 
 Options:
-  -e, --endpoints <ENDPOINTS>  path to config file where endpoints for network are listed. default is ./endpoint.yaml
-      --network <NETWORK>      [possible values: mainnet, goerli, sepolia]
-  -v, --verbose                display verbose result or not
+  -e, --endpoints <ENDPOINTS>  Path to config file where endpoints for network are listed. default is ./endpoint.yaml
+  -n, --network <NETWORK>      [possible values: mainnet, goerli, sepolia]
+  -v, --verbose                Display verbose result or not
   -h, --help                   Print help information
   -V, --version                Print version information
 ```

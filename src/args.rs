@@ -8,13 +8,13 @@ use std::path::PathBuf;
 pub struct Cli {
     #[command(flatten)]
     pub shared: SharedCommands,
-    #[arg(long, value_enum)]
+    #[arg(long,short,value_enum)]
     pub network: Option<Network>,
     #[arg(
         short,
         long,
         default_value_t = false,
-        help = "display verbose result or not"
+        help = "Display verbose result or not"
     )]
     pub verbose: bool,
     #[command(subcommand)]
@@ -31,7 +31,7 @@ pub enum SubCommands {
 pub struct ServerCommands {
     #[command(flatten)]
     pub shared: SharedCommands,
-    #[arg(short, long, default_value_t = 7070, help = "port for HTTP server")]
+    #[arg(short, long, default_value_t = 7070, help = "Port for HTTP server. Defaults to 7070")]
     pub port: u16,
 }
 
@@ -40,7 +40,7 @@ pub struct SharedCommands {
     #[arg(
         short,
         long,
-        help = "path to config file where endpoints for network are listed. default is ./endpoint.yaml"
+        help = "Path to config file where endpoints for network are listed. default is ./endpoint.yaml"
     )]
     pub endpoints: Option<PathBuf>,
 }
