@@ -5,6 +5,7 @@ use futures::future::join_all;
 
 use reqwest::Response;
 
+use crate::args::Network;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -37,7 +38,7 @@ pub struct Data {
 #[derive(Debug, Clone)]
 pub struct CheckpointClient<C: HttpClient> {
     client: C,
-    endpoints: Vec<String>,
+    endpoints_config: EndpointsConfig,
     state_id: StateId,
 }
 
@@ -56,7 +57,7 @@ impl fmt::Display for StateId {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct EndpointsConfig {
     pub endpoints: HashMap<String, Vec<String>>,
 }
@@ -77,15 +78,22 @@ impl HttpClient for reqwest::Client {
 }
 
 impl<C: HttpClient> CheckpointClient<C> {
-    pub fn new(client: C, state_id: StateId, endpoints: Vec<String>) -> Self {
+    pub fn new(client: C, state_id: StateId, endpoints: EndpointsConfig) -> Self {
         Self {
             client,
-            endpoints,
+            endpoints_config: endpoints,
             state_id,
         }
     }
-    pub async fn fetch_finality_checkpoints(&self) -> DisplayableResult {
-        let endpoints = &self.endpoints;
+    pub async fn fetch_finality_checkpoints(
+        &self,
+        network: Network,
+    ) -> Result<DisplayableResult, AppError> {
+        let endpoints_config = &self.endpoints_config;
+        let endpoints: &Vec<String> = endpoints_config.endpoints.get(&network.to_string()).ok_or(
+            AppError::EndpointsNotFound(format!("Endpoint not found for {network}")),
+        )?;
+
         let results = join_all(endpoints.iter().map(|endpoint| async {
             let raw_response = async {
                 let path = format!(
@@ -115,6 +123,6 @@ impl<C: HttpClient> CheckpointClient<C> {
         }))
         .await;
 
-        process_to_displayable_format(results)
+        Ok(process_to_displayable_format(results))
     }
 }

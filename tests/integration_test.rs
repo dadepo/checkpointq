@@ -2,11 +2,13 @@ extern crate core;
 
 use async_trait::async_trait;
 use checkpointq_lib::client::{
-    BlockInfo, CheckpointClient, Data, HttpClient, StateId, SuccessEndpointPayload,
+    BlockInfo, CheckpointClient, Data, EndpointsConfig, HttpClient, StateId, SuccessEndpointPayload,
 };
+use std::collections::HashMap;
 
 use checkpointq_lib::errors::AppError;
 
+use checkpointq_lib::args::Network::Sepolia;
 use reqwest::Response;
 
 type Req = String;
@@ -113,8 +115,15 @@ pub async fn test_only_canonical_results() {
         third_mock.0.clone(),
     ];
 
-    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
-    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    let endpoint_config = EndpointsConfig {
+        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+    };
+
+    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
+    let result = checkpoint_client
+        .fetch_finality_checkpoints(Sepolia)
+        .await
+        .unwrap();
     // assert only canonical results are returned
     assert!(result.non_canonical.is_none());
     assert_eq!(result.failure.len(), 0);
@@ -167,8 +176,15 @@ pub async fn test_only_non_canonical_results() {
         third_mock.0.clone(),
     ];
 
-    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
-    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    let endpoint_config = EndpointsConfig {
+        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+    };
+
+    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
+    let result = checkpoint_client
+        .fetch_finality_checkpoints(Sepolia)
+        .await
+        .unwrap();
     // assert only non canonical results are returned
     assert!(result.non_canonical.is_some());
     assert!(result.canonical.is_none());
@@ -219,8 +235,15 @@ pub async fn test_only_failure_results() {
         third_mock.0.clone(),
     ];
 
-    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
-    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    let endpoint_config = EndpointsConfig {
+        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+    };
+
+    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
+    let result = checkpoint_client
+        .fetch_finality_checkpoints(Sepolia)
+        .await
+        .unwrap();
     // assert only error results are returned
     assert!(result.non_canonical.is_none());
     assert!(result.canonical.is_none());
@@ -286,18 +309,19 @@ pub async fn test_results_but_no_canonical() {
         fifth_mock.0.clone(),
     ];
 
-    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoints);
-    let result = checkpoint_client.fetch_finality_checkpoints().await;
+    let endpoint_config = EndpointsConfig {
+        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+    };
+
+    let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
+    let result = checkpoint_client
+        .fetch_finality_checkpoints(Sepolia)
+        .await
+        .expect("result missing");
     // assert only non canonical results are returned
     assert!(result.canonical.is_none());
     assert_eq!(result.failure.len(), 0);
     let non_canonical_map = result.non_canonical.unwrap();
     assert_eq!(non_canonical_map.keys().len(), 4);
-    assert_eq!(
-        non_canonical_map
-            .values()
-            .flatten()
-            .count(),
-        5
-    );
+    assert_eq!(non_canonical_map.values().flatten().count(), 5);
 }

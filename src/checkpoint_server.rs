@@ -1,6 +1,9 @@
+use crate::args::Network;
 use crate::client::CheckpointClient;
+use crate::errors::AppError;
 use crate::processor::DisplayableResult;
-use axum::extract::Query;
+use axum::extract::{Path, Query};
+use axum::response::Response;
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json, Router};
 use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
@@ -20,6 +23,18 @@ pub struct ApiResponse {
     payload: Option<DisplayableResult>,
 }
 
+impl IntoResponse for ApiResponse {
+    fn into_response(self) -> Response {
+        (StatusCode::OK, Json(self)).into_response()
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        (StatusCode::NOT_FOUND, self.to_string()).into_response()
+    }
+}
+
 #[derive(Debug)]
 pub struct CheckPointMiddleware {
     checkpoint_client: CheckpointClient<reqwest::Client>,
@@ -37,7 +52,7 @@ impl CheckPointMiddleware {
     pub async fn serve(self) {
         let port = self.port;
         let app = Router::new()
-            .route("/finalized", axum::routing::get(finalized))
+            .route("/:network/finalized", axum::routing::get(finalized))
             .with_state(Arc::new(self));
 
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
@@ -51,12 +66,13 @@ impl CheckPointMiddleware {
 #[debug_handler]
 async fn finalized(
     State(middle_ware): State<Arc<CheckPointMiddleware>>,
+    Path(network): Path<Network>,
     Query(query_params): Query<QueryParams>,
-) -> impl IntoResponse {
+) -> Result<Json<ApiResponse>, AppError> {
     let displayable_result = middle_ware
         .checkpoint_client
-        .fetch_finality_checkpoints()
-        .await;
+        .fetch_finality_checkpoints(network)
+        .await?;
 
     let not_found_msg = "Finalized block root not found";
     let block_root = match displayable_result.canonical.as_ref() {
@@ -79,5 +95,5 @@ async fn finalized(
         payload,
     };
 
-    (StatusCode::OK, Json(api_response))
+    Ok(Json(api_response))
 }

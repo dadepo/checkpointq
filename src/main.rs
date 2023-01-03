@@ -1,8 +1,9 @@
-use checkpointq_lib::args::{Cli, Network};
+use checkpointq_lib::args::{Cli, SubCommands};
 use checkpointq_lib::checkpoint_server;
+use checkpointq_lib::client::StateId;
 use checkpointq_lib::client::{CheckpointClient, EndpointsConfig};
-use checkpointq_lib::client::{StateId, StateId::Slot};
-use checkpointq_lib::errors::AppError;
+
+use checkpointq_lib::args::Network::Mainnet;
 use checkpointq_lib::processor::print_result;
 use clap::Parser;
 
@@ -10,51 +11,42 @@ use clap::Parser;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input = Cli::parse();
     let client = reqwest::Client::new();
+    let state_id: StateId = StateId::Finalized; // only finalized supported for now
 
-    // get values needed from the cli
-    // 1. get the network
-    let network = match input.network.unwrap_or(Network::Mainnet) {
-        Network::Mainnet => "mainnet",
-        Network::Goerli => "goerli",
-        Network::Sepolia => "sepolia",
-    };
+    match input.subcommands {
+        Some(subcommand) => {
+            match subcommand {
+                SubCommands::ServerCliCommands(server_command) => {
+                    // server run
+                    let endpoints_path = server_command
+                        .shared
+                        .endpoints
+                        .unwrap_or("endpoints.yaml".into());
+                    let port = server_command.port;
+                    let endpoints_config: EndpointsConfig =
+                        serde_yaml::from_reader(std::fs::File::open(endpoints_path)?)?;
+                    let checkpoint_client =
+                        CheckpointClient::new(client, state_id, endpoints_config);
+                    let server =
+                        checkpoint_server::CheckPointMiddleware::new(checkpoint_client, port);
+                    server.serve().await;
+                }
+            }
+        }
+        None => {
+            // Normal run
+            let is_verbose = input.verbose;
+            let endpoints_path = input.shared.endpoints.unwrap_or("endpoints.yaml".into());
+            let endpoints_config: EndpointsConfig =
+                serde_yaml::from_reader(std::fs::File::open(endpoints_path)?)?;
 
-    // 2. Get the endpoints
-    let endpoints_path = input.endpoints.unwrap_or("endpoints.yaml".to_string());
-    let endpoints_config: EndpointsConfig =
-        serde_yaml::from_reader(std::fs::File::open(endpoints_path)?)?;
-
-    let endpoints: &Vec<String> = endpoints_config
-        .endpoints
-        .get(&network.to_string())
-        .ok_or(AppError::EndpointsNotFound("Endpoint not found".to_string()))?;
-
-    if endpoints.len() < 3 {
-        Err(AppError::EndpointsBelowThreshold(
-            "Minimum of 3 endpoints required".to_string(),
-        ))?
-    }
-
-    // 3. get the state id to get the checkpoint from. If none is given use the finalized
-    let state_id: StateId = if input.state_id == "finalized" {
-        StateId::Finalized
-    } else {
-        Slot(input.state_id.parse::<u128>()?)
-    };
-
-    // 3. get the response display level
-    let is_verbose = input.verbose;
-
-    let checkpoint_client = CheckpointClient::new(client, state_id, endpoints.to_vec());
-    let result = checkpoint_client.fetch_finality_checkpoints().await;
-    print_result(result, is_verbose);
-
-    // 4. whether to start the http server
-    let start_server = input.server;
-    if start_server {
-        println!("Starting server on port {}", input.port);
-        let server = checkpoint_server::CheckPointMiddleware::new(checkpoint_client, input.port);
-        server.serve().await;
+            let network = input.network.unwrap_or(Mainnet);
+            let checkpoint_client = CheckpointClient::new(client, state_id, endpoints_config);
+            let result = checkpoint_client
+                .fetch_finality_checkpoints(network)
+                .await?;
+            print_result(result, is_verbose);
+        }
     }
     Ok(())
 }

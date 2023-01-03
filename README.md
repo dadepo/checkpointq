@@ -20,18 +20,18 @@ For now, CheckpointQ requires to be built from source using the Rust toolchain.
 Run the binary with the `--help` flag to see the available options:
 
 ```bash
-➜  checkpointq git:(master) ✗ ./target/release/checkpointq --help
 Tool for establishing checkpoint quorum for finalized checkpoints across multiple checkpoint providers
 
-Usage: checkpointq [OPTIONS]
+Usage: checkpointq [OPTIONS] [COMMAND]
+
+Commands:
+  serve  Run in server mode
+  help   Print this message or the help of the given subcommand(s)
 
 Options:
-      --network <NETWORK>      [possible values: mainnet, goerli, sepolia]
   -e, --endpoints <ENDPOINTS>  path to config file where endpoints for network are listed. default is ./endpoint.yaml
-  -i, --state-id <STATE_ID>    provide the slot number or finalized [default: finalized]
+      --network <NETWORK>      [possible values: mainnet, goerli, sepolia]
   -v, --verbose                display verbose result or not
-  -s, --server                 start an HTTP server for the checkpoint data
-  -p, --port <PORT>            port for HTTP server [default: 7070]
   -h, --help                   Print help information
   -V, --version                Print version information
 ```
@@ -70,27 +70,27 @@ endpoints:
 for example:
 
 ```bash
-➜  checkpointq git:(master) ✗ ./target/release/checkpointq --network sepolia --endpoints ./endpoints.yaml 
+➜  checkpointq git:(master) ✗ ./target/release/checkpointq --network sepolia --endpoints ./endpoints.yaml
 Block root:
         0xf5369df9f9b1a162023593e8d1c2b138fee2e21f4eed9921802d0a138fe5878c
 ```
 
-The tool can be run in two modes: `server` and `client`. The `server` mode can be started by passing the `--server` flag
-which starts an HTTP server that serves the finalized checkpoint.
+The tool can be run in two modes: _Default_ mode that fetches the current finalized block root and print it to the console
+and a `server` mode that runs a server and exposes `/:network/finalized` path, where finalized block root can be requested. 
+
+The `server` mode is available by running the  `server` command:
+
 
 For example:
 
 ```bash
-➜  checkpointq git:(master) ✗ ./target/release/checkpointq --network sepolia --endpoints ./endpoints.yaml --server
-Block root:
-        0xf5369df9f9b1a162023593e8d1c2b138fee2e21f4eed9921802d0a138fe5878c
-Starting server on port 7070
+➜  checkpointq git:(master) ✗ ./target/release/checkpointq serve --endpoints ./endpoints.yaml
 ```
 
-Requests to the server can be made using the `/finalized` endpoint. The server can be queried using `curl`:
+Default port is `7070`. Requests to the server can be made using the `/:network/finalized` endpoint for example:
 
 ```bash
-➜  checkpointq git:(master) ✗ curl http://localhost:7070/finalized | jq
+➜  checkpointq git:(master) ✗ curl http://localhost:7070/sepolia/finalized | jq
 {
   "block_root": "0xf5369df9f9b1a162023593e8d1c2b138fee2e21f4eed9921802d0a138fe5878c"
 }
