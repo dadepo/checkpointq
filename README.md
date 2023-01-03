@@ -6,6 +6,9 @@ Ethereum checkpoint providers.
 It makes requests to multiple checkpoint providers and only returns the finalized checkpoint block root if
 more than 2/3 of the configured providers return the same checkpoint block root.
 
+This ensures you do not have to trust a single checkpoint provider. The more provider agrees on what the finalized checkpoint
+is, the more assured you can be.
+
 ## Installation
 
 For now, CheckpointQ requires to be built from source using the Rust toolchain.
