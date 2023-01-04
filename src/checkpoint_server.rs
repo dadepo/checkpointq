@@ -9,7 +9,6 @@ use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, sync::Arc};
 use tower_http::trace::TraceLayer;
-use tracing_subscriber::layer::SubscriberExt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct QueryParams {
@@ -20,6 +19,7 @@ pub struct QueryParams {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ApiResponse {
     block_root: String,
+    epoch: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(flatten)]
     payload: Option<DisplayableResult>,
@@ -81,14 +81,27 @@ async fn finalized(
         .fetch_finality_checkpoints(network)
         .await?;
 
-    let not_found_msg = "Finalized block root not found";
-    let block_root = match displayable_result.canonical.as_ref() {
-        Some(canonical) => canonical
-            .keys()
-            .next()
-            .map(|s| s.to_string())
-            .unwrap_or(not_found_msg.to_string()),
-        None => not_found_msg.to_string(),
+    let block_not_found_msg = "Finalized block root not found";
+    let epoch_not_found_msg = "Epoch not found";
+    let (block_root, epoch) = match displayable_result.canonical.as_ref() {
+        Some(canonical) => {
+            let block_root = canonical
+                .keys()
+                .next()
+                .map(|s| s.to_string())
+                .unwrap_or(block_not_found_msg.to_string());
+            let epoch = canonical
+                .values()
+                .next()
+                .and_then(|success_payloads| success_payloads.iter().next())
+                .map(|success_payload| success_payload.payload.data.finalized.epoch.to_string())
+                .unwrap_or(epoch_not_found_msg.to_string());
+            (block_root, epoch)
+        }
+        None => (
+            block_not_found_msg.to_string(),
+            epoch_not_found_msg.to_string(),
+        ),
     };
 
     let payload = if query_params.verbose {
@@ -99,6 +112,7 @@ async fn finalized(
 
     let api_response = ApiResponse {
         block_root,
+        epoch,
         payload,
     };
 

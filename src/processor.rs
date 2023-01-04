@@ -112,7 +112,7 @@ pub fn process_to_displayable_format(
 pub fn print_result(result: DisplayableResult, is_verbose: bool) {
     if let Some(canonical_result) = result.canonical {
         println!(
-            "{}:\n \t{}",
+            "{}: {}",
             "Block root".blue(),
             canonical_result
                 .keys()
@@ -121,6 +121,16 @@ pub fn print_result(result: DisplayableResult, is_verbose: bool) {
                 .green()
                 .bold()
         );
+
+        if let Some((_, first_value)) = canonical_result.iter().next() {
+            if let Some(first_item) = first_value.iter().next() {
+                println!(
+                    "{}: \t{}",
+                    "Epoch".blue(),
+                    first_item.payload.data.finalized.epoch.green().bold()
+                );
+            }
+        }
 
         if is_verbose {
             println!(
