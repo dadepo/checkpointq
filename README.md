@@ -74,8 +74,8 @@ for example:
 
 ```bash
 ➜  checkpointq git:(master) ✗ ./target/release/checkpointq --network sepolia --endpoints ./endpoints.yaml
-Block root:
-        0xf5369df9f9b1a162023593e8d1c2b138fee2e21f4eed9921802d0a138fe5878c
+Block root: 0x32c1b19ee499bfbd68b656eed0cf96278c4362942ad48b6cc7d15f620401351c
+Epoch:  44614
 ```
 
 The tool can be run in two modes: _Default_ mode that fetches the current finalized block root and print it to the console
@@ -95,7 +95,7 @@ Default port is `7070`. Requests to the server can be made using the `/:network/
 ```bash
 ➜  checkpointq git:(master) ✗ curl http://localhost:7070/sepolia/finalized | jq
 {
-  "block_root": "0xf5369df9f9b1a162023593e8d1c2b138fee2e21f4eed9921802d0a138fe5878c"
+"block_root": "0x32c1b19ee499bfbd68b656eed0cf96278c4362942ad48b6cc7d15f620401351c",
+"epoch": "44614"
 }
-
 ```

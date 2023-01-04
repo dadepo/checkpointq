@@ -91,8 +91,7 @@ async fn finalized(
                 .map(|s| s.to_string())
                 .unwrap_or(block_not_found_msg.to_string());
             let epoch = canonical
-                .values()
-                .next()
+                .get(&block_root)
                 .and_then(|success_payloads| success_payloads.iter().next())
                 .map(|success_payload| success_payload.payload.data.finalized.epoch.to_string())
                 .unwrap_or(epoch_not_found_msg.to_string());
