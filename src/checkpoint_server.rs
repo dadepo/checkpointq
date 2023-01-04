@@ -8,6 +8,8 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json, Route
 use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, sync::Arc};
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::layer::SubscriberExt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct QueryParams {
@@ -50,9 +52,14 @@ impl CheckPointMiddleware {
     }
 
     pub async fn serve(self) {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .init();
+
         let port = self.port;
         let app = Router::new()
             .route("/:network/finalized", axum::routing::get(finalized))
+            .layer(TraceLayer::new_for_http())
             .with_state(Arc::new(self));
 
         let addr = SocketAddr::from(([127, 0, 0, 1], port));

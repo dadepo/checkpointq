@@ -20,6 +20,9 @@ async-trait = "0.1.59"
 axum = "0.6.1"
 axum-macros = "0.3.0"
 thiserror = "1.0.38"
+tower-http = { version = "0.3.5", features = ["trace"] }
+tracing-subscriber = { version = "0.3"}
+tracing = { version = "0.1.37"}
 
 [dev-dependencies]
 http = "0.2.8"
