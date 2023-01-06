@@ -9,6 +9,10 @@ use axum_macros::debug_handler;
 use serde::{Deserialize, Serialize};
 use std::{net::SocketAddr, sync::Arc};
 use tower_http::trace::TraceLayer;
+use tracing::info;
+use tracing::level_filters::LevelFilter;
+
+use tracing_subscriber::{fmt, EnvFilter};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct QueryParams {
@@ -52,10 +56,15 @@ impl CheckPointMiddleware {
     }
 
     pub async fn serve(self) {
-        tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
+        fmt()
+            .with_env_filter(
+                EnvFilter::builder()
+                    .with_default_directive(LevelFilter::INFO.into())
+                    .from_env_lossy(),
+            )
             .init();
 
+        info!("starting server on port {}", self.port);
         let port = self.port;
         let app = Router::new()
             .route("/:network/finalized", axum::routing::get(finalized))
