@@ -3,15 +3,14 @@
 CheckpointQ, where the Q stands for quorum, is a tool for establishing quorum over finalized checkpoints across multiple
 Ethereum checkpoint providers.
 
-It makes requests to multiple checkpoint providers and only returns the finalized checkpoint block root if
-more than 2/3 of the configured providers return the same checkpoint block root.
+It makes requests to multiple checkpoint providers and only returns the finalized checkpoint block root if more than 2/3 of the configured providers return the same checkpoint block root.
 
-This ensures you do not have to trust a single checkpoint provider. The more provider agrees on what the finalized checkpoint
+This ensures you do not have to trust a single checkpoint provider. The more providers agree on what the finalized checkpoint
 is, the more assured you can be.
 
 ## Installation
 
-For now, CheckpointQ requires to be built from source using the Rust toolchain.
+For now, there are no binary releases for CheckpointQ, so it can only be built from the source using the Rust toolchain.
 
 - Install Rust. See [here](https://www.rust-lang.org/tools/install) for details.
 - Clone the repository.
@@ -79,7 +78,7 @@ Epoch:  44614
 ```
 
 The tool can be run in two modes: _Default_ mode that fetches the current finalized block root and print it to the console
-and a `server` mode that runs a server and exposes `/:network/finalized` path, where finalized block root can be requested. 
+and a `server` mode that runs a server and exposes `/:network/finalized` path, where finalized block root can be requested.
 
 The `server` mode is available by running the  `server` command:
 
