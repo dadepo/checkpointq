@@ -1,7 +1,11 @@
+use std::fmt::Display;
+use std::path::PathBuf;
+use std::string::ToString;
+
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
-use std::path::PathBuf;
+
+use strum_macros::Display;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about)]
@@ -50,22 +54,10 @@ pub struct SharedCommands {
     pub endpoints: Option<PathBuf>,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Deserialize, Serialize)]
+#[derive(Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Network {
-    #[serde(rename = "mainnet")]
     Mainnet,
-    #[serde(rename = "goerli")]
     Goerli,
-    #[serde(rename = "sepolia")]
     Sepolia,
-}
-
-impl Display for Network {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Network::Mainnet => write!(f, "mainnet"),
-            Network::Goerli => write!(f, "goerli"),
-            Network::Sepolia => write!(f, "sepolia"),
-        }
-    }
 }
