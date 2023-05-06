@@ -1,10 +1,7 @@
-use std::fmt::Display;
 use std::path::PathBuf;
-use std::string::ToString;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
-
 use strum_macros::Display;
 
 #[derive(Parser)]
@@ -54,7 +51,9 @@ pub struct SharedCommands {
     pub endpoints: Option<PathBuf>,
 }
 
-#[derive(Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Deserialize, Serialize)]
+#[derive(
+    Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Deserialize, Serialize,
+)]
 #[serde(rename_all = "lowercase")]
 pub enum Network {
     Mainnet,

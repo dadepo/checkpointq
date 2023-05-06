@@ -103,15 +103,26 @@ impl<C: HttpClient> CheckpointClient<C> {
                 );
                 let result = self.client.send_request(path);
                 match result.await {
-                    // TODO Possible not to use match?
-                    // Catch error before parsing to json so that original error message is used upstream
-                    Ok(res) => ResponsePayloadWithEndpointInfo {
-                        payload: res
-                            .json::<SuccessEndpointPayload>()
-                            .await
-                            .map_err(|e| AppError::EndpointResponseError(e.to_string())),
-                        endpoint: endpoint.clone(),
-                    },
+                    Ok(res) => {
+                        if res.status().is_success() {
+                            ResponsePayloadWithEndpointInfo {
+                                payload: res
+                                    .json::<SuccessEndpointPayload>()
+                                    .await
+                                    .map_err(|e| AppError::EndpointResponseError(e.to_string())),
+                                endpoint: endpoint.clone(),
+                            }
+                        } else {
+                            ResponsePayloadWithEndpointInfo {
+                                payload: Err(AppError::EndpointResponseError(format!(
+                                    "Error with calling {} status code {}",
+                                    endpoint.clone(),
+                                    res.status().to_string()
+                                ))),
+                                endpoint: endpoint.clone(),
+                            }
+                        }
+                    }
                     Err(e) => ResponsePayloadWithEndpointInfo {
                         payload: Err(e),
                         endpoint: endpoint.clone(),
