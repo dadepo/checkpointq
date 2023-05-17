@@ -86,7 +86,7 @@ pub fn process_to_displayable_format(
                 .into_iter()
                 .partition(|(_, values)| values.len() as f64 > threshold);
             if passed_threshold.keys().len() == 1 {
-                // if there is only one value thay passed the threshold that is the canonical result
+                // if there is only one value they passed the threshold that is the canonical result
                 canonical = Some(passed_threshold)
             } else {
                 // else the non_canonical will include

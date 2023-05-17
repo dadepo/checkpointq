@@ -116,7 +116,7 @@ pub async fn test_only_canonical_results() {
     ];
 
     let endpoint_config = EndpointsConfig {
-        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+        endpoints: HashMap::from([(Sepolia.to_string().to_lowercase(), endpoints)]),
     };
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
@@ -177,7 +177,7 @@ pub async fn test_only_non_canonical_results() {
     ];
 
     let endpoint_config = EndpointsConfig {
-        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+        endpoints: HashMap::from([(Sepolia.to_string().to_lowercase(), endpoints)]),
     };
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
@@ -236,7 +236,7 @@ pub async fn test_only_failure_results() {
     ];
 
     let endpoint_config = EndpointsConfig {
-        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+        endpoints: HashMap::from([(Sepolia.to_string().to_lowercase(), endpoints)]),
     };
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
@@ -310,7 +310,7 @@ pub async fn test_results_but_no_canonical() {
     ];
 
     let endpoint_config = EndpointsConfig {
-        endpoints: HashMap::from([(Sepolia.to_string(), endpoints)]),
+        endpoints: HashMap::from([(Sepolia.to_string().to_lowercase(), endpoints)]),
     };
 
     let checkpoint_client = CheckpointClient::new(client, StateId::Finalized, endpoint_config);
