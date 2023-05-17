@@ -7,7 +7,7 @@ description = "Tool for establishing checkpoint quorum for finalized checkpoints
 readme = "README.md"
 homepage = "https://github.com/dadepo/checkpointq"
 repository = "https://github.com/dadepo/checkpointq"
-keywords = ["Ethereum", "Beacon Chain", "Eth", "Consensus"]
+keywords = ["Ethereum", "BeaconChain", "Eth", "Consensus"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
