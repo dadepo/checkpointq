@@ -1,13 +1,14 @@
-use checkpointq_lib::args::{Cli, SubCommands};
-use checkpointq_lib::checkpoint_server;
-use checkpointq_lib::client::StateId;
-use checkpointq_lib::client::{CheckpointClient, EndpointsConfig};
 use std::path::PathBuf;
 
+use clap::Parser;
+
+use checkpointq_lib::args::{Cli, SubCommands};
 use checkpointq_lib::args::Network::Mainnet;
+use checkpointq_lib::checkpoint_server;
+use checkpointq_lib::client::{CheckpointClient, EndpointsConfig};
+use checkpointq_lib::client::StateId;
 use checkpointq_lib::errors::AppError;
 use checkpointq_lib::processor::print_result;
-use clap::Parser;
 
 fn parse_endpoint_config(
     endpoints_path: PathBuf,

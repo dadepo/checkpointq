@@ -90,8 +90,8 @@ impl<C: HttpClient> CheckpointClient<C> {
         network: Network,
     ) -> Result<DisplayableResult, AppError> {
         let endpoints_config = &self.endpoints_config;
-        let endpoints: &Vec<String> = endpoints_config.endpoints.get(&network.to_string()).ok_or(
-            AppError::EndpointsNotFound(format!("Endpoint not found for {network}")),
+        let endpoints: &Vec<String> = endpoints_config.endpoints.get(&network.to_string().to_lowercase()).ok_or(
+            AppError::EndpointsNotFound(format!(r#"Endpoint not found for {network} network. Ensure it is present in the config file and the network name is specified in lowercase."#)),
         )?;
 
         let results = join_all(endpoints.iter().map(|endpoint| async {
