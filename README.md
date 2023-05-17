@@ -10,7 +10,11 @@ is, the more assured you can be.
 
 ## Installation
 
-For now, there are no binary releases for CheckpointQ, so it can only be built from the source using the Rust toolchain.
+At present, the installation process for CheckpointQ involves utilizing the Rust/Cargo toolchain. 
+However, the release and distribution of the CheckpointQ binary are aspects that will be addressed in the future.
+
+You can install CheckpointQ from cargo by running `cargo install checkpointq`. Or you can also build directly from 
+the source yourself.
 
 - Install Rust. See [here](https://www.rust-lang.org/tools/install) for details.
 - Clone the repository.
