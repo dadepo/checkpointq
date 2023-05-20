@@ -1,15 +1,15 @@
-use crate::errors::AppError;
-use crate::processor::{process_to_displayable_format, DisplayableResult};
-use async_trait::async_trait;
-use futures::future::join_all;
-
-use reqwest::Response;
-
-use crate::args::Network;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
+
+use async_trait::async_trait;
+use futures::future::join_all;
+use reqwest::Response;
+use serde::{Deserialize, Serialize};
+
+use crate::args::Network;
+use crate::errors::AppError;
+use crate::processor::{DisplayableResult, process_to_displayable_format};
 
 #[derive(Debug)]
 pub struct ResponsePayloadWithEndpointInfo {
@@ -45,7 +45,7 @@ pub struct CheckpointClient<C: HttpClient> {
 #[derive(Debug, Clone)]
 pub enum StateId {
     Finalized,
-    Slot(u128), // TODO is u128 to big?
+    Slot(u128), // TODO is u128 too big?
 }
 
 impl fmt::Display for StateId {
@@ -78,10 +78,16 @@ impl HttpClient for reqwest::Client {
 }
 
 impl<C: HttpClient> CheckpointClient<C> {
-    pub fn new(client: C, state_id: StateId, endpoints: EndpointsConfig) -> Self {
+    pub fn new(client: C, state_id: StateId, mut endpoints_config: EndpointsConfig) -> Self {
+
+        // Normalise the keys to lowercase
+        endpoints_config.endpoints = endpoints_config.endpoints.into_iter().map(|(k,v)| {
+            (k.to_lowercase(), v)
+        }).collect();
+
         Self {
             client,
-            endpoints_config: endpoints,
+            endpoints_config,
             state_id,
         }
     }
@@ -91,7 +97,7 @@ impl<C: HttpClient> CheckpointClient<C> {
     ) -> Result<DisplayableResult, AppError> {
         let endpoints_config = &self.endpoints_config;
         let endpoints: &Vec<String> = endpoints_config.endpoints.get(&network.to_string().to_lowercase()).ok_or(
-            AppError::EndpointsNotFound(format!(r#"Endpoint not found for {network} network. Ensure it is present in the config file and the network name is specified in lowercase."#)),
+            AppError::EndpointsNotFound(format!(r#"Endpoint not found for {network} network. Ensure it is present in the config file."#)),
         )?;
 
         let results = join_all(endpoints.iter().map(|endpoint| async {
