@@ -101,7 +101,7 @@ impl<C: HttpClient> CheckpointClient<C> {
         )?;
 
         let results = join_all(endpoints.iter().map(|endpoint| async {
-            let raw_response = async {
+            async {
                 let path = format!(
                     "{}/eth/v1/beacon/states/{}/finality_checkpoints",
                     endpoint.clone(),
@@ -123,7 +123,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                                 payload: Err(AppError::EndpointResponseError(format!(
                                     "Error with calling {} status code {}",
                                     endpoint.clone(),
-                                    res.status().to_string()
+                                    res.status()
                                 ))),
                                 endpoint: endpoint.clone(),
                             }
@@ -135,8 +135,7 @@ impl<C: HttpClient> CheckpointClient<C> {
                     },
                 }
             }
-            .await;
-            raw_response
+            .await
         }))
         .await;
 
